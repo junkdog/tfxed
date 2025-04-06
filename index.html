@@ -1,39 +1,165 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/firacode/6.2.0/fira_code.min.css"
-    />
-    <title>tfxed</title>
-    <style>
-      body {
-        margin: 0;
-        width: 100%;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        align-content: center;
-        background-color: #121212;
-      }
-      pre {
-        font-family: "Fira Code", monospace;
-        font-size: 16px;
-        margin: 0px;
-      }
-    </style>
-  </head>
-  <body>
-    <script type="module">
-      import init from "./pkg/ratzilla.js";
-      init();
-    </script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, user-scalable=no"
+  />
+  <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/firacode/6.2.0/fira_code.min.css"
+  />
+  <title>tfxed</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      font-family: "Fira Code", monospace;
+      background-color: #121212;
+      color: white;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #container {
+      display: flex;
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+    }
+
+    #editor {
+      width: 50%;
+      height: 100%;
+    }
+
+    #divider {
+      width: 5px;
+      cursor: col-resize;
+      background-color: #333;
+    }
+
+    #content {
+      width: 50%;
+      height: 100%;
+      padding: 1em;
+      overflow: auto;
+    }
+
+    #buffer-input {
+      background: #1e1e1e;
+      color: white;
+      border: none;
+      resize: vertical;
+      font-family: inherit;
+      font-size: 14px;
+      width: 100%;
+      padding: 0.5em;
+      box-sizing: border-box;
+      border-top: 1px solid #333;
+      height: 100px;
+    }
+
+    pre {
+      font-size: 16px;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+<div id="container">
+  <div id="editor"></div>
+  <div id="divider"></div>
+  <div id="content">
+        <pre>
+Loaded WASM output will appear here.
+        </pre>
+  </div>
+</div>
+
+<textarea id="buffer-input" placeholder="Paste ANSI-escaped ASCII here..."></textarea>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/ace.js"></script>
+<script>
+  const editor = ace.edit("editor");
+  editor.setTheme("ace/theme/monokai");
+  editor.session.setMode("ace/mode/rust");
+  editor.setFontSize("14px");
+
+  const bufferInput = document.getElementById("buffer-input");
+
+  // Query param utils
+  function updateQueryParam(key, value) {
+    const url = new URL(window.location);
+    if (value === null) {
+      url.searchParams.delete(key);
+    } else {
+      url.searchParams.set(key, value);
+    }
+    url.searchParams.set("last_update", Date.now().toString());
+    history.replaceState(null, "", url);
+  }
+
+  // Load from query params
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
+  const buffer = params.get("buffer");
+
+  if (code) {
+    try {
+      editor.setValue(atob(code), -1);
+    } catch {
+      console.warn("Invalid base64 in ?code");
+    }
+  }
+
+  if (buffer) {
+    try {
+      bufferInput.value = atob(buffer);
+    } catch {
+      console.warn("Invalid base64 in ?buffer");
+    }
+  }
+
+  // save code on Ctrl+S / Cmd+S
+  window.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+      e.preventDefault();
+      const encoded = btoa(editor.getValue());
+      updateQueryParam("code", encoded);
+    }
+  });
+
+  // save buffer on input
+  bufferInput.addEventListener("input", () => {
+    const encoded = btoa(bufferInput.value);
+    updateQueryParam("buffer", encoded);
+  });
+
+  // draggable splitter
+  const divider = document.getElementById("divider");
+  const editorEl = document.getElementById("editor");
+  const contentEl = document.getElementById("content");
+
+  let isDragging = false;
+  divider.addEventListener("mousedown", () => (isDragging = true));
+  window.addEventListener("mouseup", () => (isDragging = false));
+  window.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
+    const percent = (e.clientX / window.innerWidth) * 100;
+    editorEl.style.width = percent + "%";
+    contentEl.style.width = 100 - percent + "%";
+    editor.resize();
+  });
+</script>
+
+<script type="module">
+  import init from "./pkg/ratzilla.js";
+  init();
+</script>
+</body>
 </html>

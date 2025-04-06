@@ -12,7 +12,7 @@ use terminal::terminal;
 
 use crate::app::App;
 use crate::event_handler::EventHandler;
-use crate::tui::{DefaultTui, Tui};
+use crate::tui::Tui;
 use color_eyre::eyre::{Result, WrapErr};
 use ratatui::backend::CrosstermBackend;
 use crate::dispatcher::Dispatcher;
@@ -21,7 +21,7 @@ use crate::event::AppEvent;
 fn init_tui() -> Result<Tui<CrosstermBackend<Stdout>>> {
     let terminal = terminal()?;
     let events = EventHandler::new(std::time::Duration::from_millis(33));
-    Ok(DefaultTui::new(terminal, events))
+    Ok(Tui::new(terminal, events))
 }
 
 fn main() -> Result<()> {

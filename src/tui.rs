@@ -9,12 +9,6 @@ use ratatui::prelude::Backend;
 #[cfg(feature = "web-backend")]
 use ratzilla::WebRenderer;
 
-#[cfg(feature = "crossterm-backend")]
-pub type DefaultTui = Tui<ratatui::backend::CrosstermBackend<io::Stdout>>;
-
-#[cfg(feature = "web-backend")]
-pub type DefaultTui = Tui<ratzilla::DomBackend>;
-
 /// Representation of a terminal user interface.
 ///
 /// It is responsible for setting up the terminal,

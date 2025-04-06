@@ -4,7 +4,7 @@ use ratatui::Terminal;
 
 #[cfg(feature = "web-backend")]
 pub fn terminal() -> Result<Terminal<ratzilla::DomBackend>> {
-    let backend = ratzilla::DomBackend::new()
+    let backend = ratzilla::DomBackend::new_by_id("content")
         .map_err(|e| eyre!("{e}"))?;
 
     Terminal::new(backend)
