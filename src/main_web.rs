@@ -29,7 +29,7 @@ fn main() -> Result<()> {
         }
     });
 
-    let mut app = App::new();;
+    let mut app = App::new(events.sender());
 
     terminal.draw_web(move |f| {
         events.receive_events(|event| {

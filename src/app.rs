@@ -1,15 +1,19 @@
+use std::sync::mpsc::Sender;
 use std::time::Instant;
+use ansi_to_tui::IntoText;
 use ratatui::buffer::Buffer;
 use ratatui::Frame;
-use ratatui::layout::Alignment;
+use ratatui::layout::{Alignment, Offset, Rect};
 use ratatui::prelude::{Color, style::Stylize};
-use ratatui::widgets::{Block, BorderType, Paragraph};
-use tachyonfx::{ref_count, Duration, EffectManager, RefCount};
+use ratatui::text::Text;
+use ratatui::widgets::{Block, BorderType, Paragraph, Widget};
+use tachyonfx::{ref_count, BufferRenderer, CenteredShrink, Duration, EffectManager, RefCount};
 use crate::event::{AppEvent, KeyCode, KeyEvent};
 
 pub struct App {
+    sender: std::sync::mpsc::Sender<AppEvent>,
     effects: EffectManager<u32>,
-    buf_base: RefCount<Buffer>,
+    canvas_buf: RefCount<Buffer>,
     last_tick_instant: Instant,
     last_tick_duration: Duration,
     counter: usize,
@@ -17,11 +21,14 @@ pub struct App {
 }
 
 impl App {
-    pub fn new() -> Self {
-        let area = ratatui::layout::Rect::new(0, 0, 80, 40);
+    pub fn new(sender: Sender<AppEvent>) -> Self {
+        let area = ratatui::layout::Rect::new(0, 0, 20, 10);
+        let canvas_buf = ref_count(Buffer::empty(area));
+
         Self {
+            sender,
             effects: Default::default(),
-            buf_base: ref_count(Buffer::empty(area)),
+            canvas_buf,
             last_tick_instant: std::time::Instant::now(),
             last_tick_duration: Duration::default(),
             counter: 0,
@@ -29,26 +36,19 @@ impl App {
         }
     }
 
+    pub fn sender(&self) -> Sender<AppEvent> {
+        self.sender.clone()
+    }
+
     pub fn render_ui(&self, frame: &mut Frame) {
-        let block = Block::bordered()
-            .title("tfxed")
-            .title_alignment(Alignment::Center)
-            .border_type(BorderType::Rounded);
+        let canvas_area = self.canvas_buf.borrow().area;
+        let frame_area = frame.area();
 
-        let c = self.counter();
-        let text = format!(
-            "This is a Ratzilla template.\n\
-             Press left and right to increment and decrement the counter respectively.\n\
-             Counter: {c}",
-        );
+        let Rect { x, y, .. } = frame_area
+            .inner_centered(canvas_area.width, canvas_area.height);
 
-        let paragraph = Paragraph::new(text)
-            .block(block)
-            .fg(Color::White)
-            .bg(Color::Black)
-            .centered();
-
-        frame.render_widget(paragraph, frame.area());
+        self.canvas_buf.borrow()
+            .render_buffer(Offset { x: x as _, y: y as _ }, &mut frame.buffer_mut());
     }
 
     pub fn render_effects(&mut self, frame: &mut Frame) {
@@ -84,7 +84,26 @@ impl App {
             AppEvent::KeyPress(KeyEvent { key_code, .. }) => {
                 self.counter = self.counter + 1;
             }
+            AppEvent::UpdateCanvas(s) => self.update_canvas(s),
             _ => {}
         }
+    }
+
+    fn update_canvas(&mut self, source: String) {
+        let input = source.into_text().unwrap_or_else(|_| {
+            eprintln!("Failed to parse input file");
+            std::process::exit(1);
+        });
+
+        let w = input.lines.iter().map(|line| line.width()).max().unwrap_or(0);
+        let h = input.lines.len();
+
+        let area = ratatui::layout::Rect::new(0, 0, w as _, h as _);
+        let canvas_buf = ref_count(Buffer::empty(area));
+
+        input.render(area, &mut canvas_buf.borrow_mut());
+
+        // replace the old buffer with the new one
+        self.canvas_buf = canvas_buf;
     }
 }

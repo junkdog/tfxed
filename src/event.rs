@@ -4,6 +4,7 @@ pub enum AppEvent {
     Tick,
     KeyPress(KeyEvent),
     Resize(u16, u16),
+    UpdateCanvas(String),
     Quit,
 }
 

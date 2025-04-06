@@ -1,6 +1,5 @@
 use std::io;
-
-
+use std::sync::mpsc;
 use crate::event_handler::EventHandler;
 use crate::event::AppEvent;
 use ratatui::layout::Size;
@@ -30,6 +29,10 @@ pub struct Tui<BACKEND : Backend> {
 impl<BACKEND: Backend + 'static> Tui<BACKEND> {
     pub fn new(terminal: Terminal<BACKEND>, events: EventHandler) -> Self {
         Self { terminal, events }
+    }
+
+    pub fn sender(&self) -> mpsc::Sender<AppEvent> {
+        self.events.sender()
     }
 
     #[cfg(feature = "crossterm-backend")]

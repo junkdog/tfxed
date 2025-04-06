@@ -14,6 +14,7 @@ tachyonfx = { version = "0.13.0", default-features = false, features = ["dsl"] }
 crossterm = { version = "0.28.1", optional = true }
 compact_str = "0.9.0"
 bitflags = "2.9.0"
+ansi-to-tui = "7.0.0"
 
 [features]
 #default = ["crossterm-backend"]
