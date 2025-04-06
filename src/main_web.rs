@@ -5,7 +5,6 @@ mod event_handler;
 mod dispatcher;
 mod tui;
 
-use std::{cell::RefCell, rc::Rc};
 use terminal::terminal;
 
 use ratatui::style::Stylize;
@@ -21,27 +20,23 @@ fn main() -> Result<()> {
     color_eyre::install()?;
 
     let mut terminal = terminal()?;
-    let events = Rc::new(RefCell::new(EventHandler::new()));
+    let mut events = EventHandler::new();
 
-    let key_event_sender = events.borrow().sender();
+    let key_event_sender = events.sender();
     terminal.on_key_event(move |e| {
         if !e.alt && !e.ctrl {
             key_event_sender.dispatch(AppEvent::KeyPress(e.into()));
         }
     });
 
-    // let tui = Rc::new(RefCell::new(init_tui()?));
-    let app = Rc::new(RefCell::new(App::new()));;
-    let app_state = app.clone();
+    let mut app = App::new();;
 
     terminal.draw_web(move |f| {
-        let mut a = app_state.borrow_mut();
-        events.borrow_mut().receive_events(|event| {
-            a.apply_event(event);
+        events.receive_events(|event| {
+            app.apply_event(event);
         });
 
-        // a.increment_counter();
-        a.render(f)
+        app.render(f)
     });
 
     Ok(())
