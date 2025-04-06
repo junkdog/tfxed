@@ -1,0 +1,48 @@
+mod app;
+mod terminal;
+mod event;
+mod event_handler;
+mod dispatcher;
+mod tui;
+
+use std::{cell::RefCell, rc::Rc};
+use terminal::terminal;
+
+use ratatui::style::Stylize;
+
+use crate::app::App;
+use crate::dispatcher::Dispatcher;
+use crate::event::AppEvent;
+use crate::event_handler::EventHandler;
+use color_eyre::eyre::{Result, WrapErr};
+use ratzilla::WebRenderer;
+
+fn main() -> Result<()> {
+    color_eyre::install()?;
+
+    let mut terminal = terminal()?;
+    let events = Rc::new(RefCell::new(EventHandler::new()));
+
+    let key_event_sender = events.borrow().sender();
+    terminal.on_key_event(move |e| {
+        if !e.alt && !e.ctrl {
+            key_event_sender.dispatch(AppEvent::KeyPress(e.into()));
+        }
+    });
+
+    // let tui = Rc::new(RefCell::new(init_tui()?));
+    let app = Rc::new(RefCell::new(App::new()));;
+    let app_state = app.clone();
+
+    terminal.draw_web(move |f| {
+        let mut a = app_state.borrow_mut();
+        events.borrow_mut().receive_events(|event| {
+            a.apply_event(event);
+        });
+
+        // a.increment_counter();
+        a.render(f)
+    });
+
+    Ok(())
+}
