@@ -19,10 +19,10 @@ use ratzilla::WebRenderer;
 fn main() -> Result<()> {
     color_eyre::install()?;
 
-    let mut terminal = terminal()?;
-    let mut events = EventHandler::new();
-
+    let events = EventHandler::new();
     let key_event_sender = events.sender();
+
+    let mut terminal = terminal()?;
     terminal.on_key_event(move |e| {
         if !e.alt && !e.ctrl {
             key_event_sender.dispatch(AppEvent::KeyPress(e.into()));
@@ -36,7 +36,9 @@ fn main() -> Result<()> {
             app.apply_event(event);
         });
 
-        app.render(f)
+        app.update_time();
+        app.render_ui(f);
+        app.render_effects(f);
     });
 
     Ok(())

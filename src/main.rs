@@ -28,16 +28,18 @@ fn main() -> Result<()> {
     let mut app = App::new();
 
     while app.is_running() {
-        // let elapsed = app.update_time();
         tui.receive_events(|event| {
             app.apply_event(event);
         });
 
         tui.draw(|f| {
-            app.render(f);
-            // effects(elapsed, &mut app, f);
+            app.update_time();
+            app.render_ui(f);
+            app.render_effects(f);
         })?;
     }
+
+    ratatui::restore();
 
     Ok(())
 }
