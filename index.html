@@ -74,11 +74,7 @@
 <div id="container">
   <div id="editor"></div>
   <div id="divider"></div>
-  <div id="content">
-        <pre>
-Loaded WASM output will appear here.
-        </pre>
-  </div>
+  <div id="content"></div>
 </div>
 
 <textarea id="buffer-input" placeholder="Paste ANSI-escaped ASCII here..."></textarea>
@@ -109,9 +105,21 @@ Loaded WASM output will appear here.
   const code = params.get("code");
   const buffer = params.get("buffer");
 
+  function base64Encode(str) {
+    const bytes = new TextEncoder().encode(str);
+    const bin = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
+    return btoa(bin);
+  }
+
+  function base64Decode(base64) {
+    const bin = atob(base64);
+    const bytes = new Uint8Array([...bin].map(char => char.charCodeAt(0)));
+    return new TextDecoder().decode(bytes);
+  }
+
   if (code) {
     try {
-      editor.setValue(atob(code), -1);
+      editor.setValue(base64Decode(code), -1);
     } catch {
       console.warn("Invalid base64 in ?code");
     }
@@ -119,7 +127,7 @@ Loaded WASM output will appear here.
 
   if (buffer) {
     try {
-      bufferInput.value = atob(buffer);
+      bufferInput.value = base64Decode(buffer);
     } catch {
       console.warn("Invalid base64 in ?buffer");
     }
@@ -129,14 +137,16 @@ Loaded WASM output will appear here.
   window.addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === "s") {
       e.preventDefault();
-      const encoded = btoa(editor.getValue());
+      const encoded = base64Encode(editor.getValue(0));
       updateQueryParam("code", encoded);
+
+      updateQueryParam("buffer", base64Encode(bufferInput.value));
     }
   });
 
   // save buffer on input
   bufferInput.addEventListener("input", () => {
-    const encoded = btoa(bufferInput.value);
+    const encoded = base64Encode(bufferInput.value);
     updateQueryParam("buffer", encoded);
   });
 

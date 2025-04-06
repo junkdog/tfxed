@@ -5,6 +5,7 @@ pub enum AppEvent {
     KeyPress(KeyEvent),
     Resize(u16, u16),
     UpdateCanvas(String),
+    CompileDsl(String),
     Quit,
 }
 

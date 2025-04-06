@@ -1,5 +1,4 @@
 use std::sync::mpsc::Sender;
-use std::time::Instant;
 use ansi_to_tui::IntoText;
 use ratatui::buffer::Buffer;
 use ratatui::Frame;
@@ -7,14 +6,18 @@ use ratatui::layout::{Alignment, Offset, Rect};
 use ratatui::prelude::{Color, style::Stylize};
 use ratatui::text::Text;
 use ratatui::widgets::{Block, BorderType, Paragraph, Widget};
-use tachyonfx::{ref_count, BufferRenderer, CenteredShrink, Duration, EffectManager, RefCount};
+use tachyonfx::{ref_count, BufferRenderer, CenteredShrink, Duration, Effect, EffectManager, RefCount};
+use tachyonfx::dsl::EffectDsl;
 use crate::event::{AppEvent, KeyCode, KeyEvent};
 
 pub struct App {
     sender: std::sync::mpsc::Sender<AppEvent>,
     effects: EffectManager<u32>,
     canvas_buf: RefCount<Buffer>,
-    last_tick_instant: Instant,
+    #[cfg(feature = "crossterm-backend")]
+    last_tick_instant: std::time::Instant,
+    #[cfg(feature = "web-backend")]
+    last_tick_instant: web_time::Instant,
     last_tick_duration: Duration,
     counter: usize,
     is_running: bool,
@@ -25,11 +28,17 @@ impl App {
         let area = ratatui::layout::Rect::new(0, 0, 20, 10);
         let canvas_buf = ref_count(Buffer::empty(area));
 
+        #[cfg(feature = "crossterm-backend")]
+        let last_tick_instant = std::time::Instant::now();
+
+        #[cfg(feature = "web-backend")]
+        let last_tick_instant = web_time::Instant::now();
+
         Self {
             sender,
             effects: Default::default(),
             canvas_buf,
-            last_tick_instant: std::time::Instant::now(),
+            last_tick_instant,
             last_tick_duration: Duration::default(),
             counter: 0,
             is_running: true,
@@ -44,11 +53,12 @@ impl App {
         let canvas_area = self.canvas_buf.borrow().area;
         let frame_area = frame.area();
 
-        let Rect { x, y, .. } = frame_area
-            .inner_centered(canvas_area.width, canvas_area.height);
+        // let Rect { x, y, .. } = frame_area
+        //     .inner_centered(canvas_area.width, canvas_area.height);
 
         self.canvas_buf.borrow()
-            .render_buffer(Offset { x: x as _, y: y as _ }, &mut frame.buffer_mut());
+            .render_buffer(Offset { x: 2, y: 2 }, &mut frame.buffer_mut());
+            // .render_buffer(Offset { x: x as _, y: y as _ }, &mut frame.buffer_mut());
     }
 
     pub fn render_effects(&mut self, frame: &mut Frame) {
@@ -65,8 +75,18 @@ impl App {
         self.counter
     }
 
+    #[cfg(feature = "crossterm-backend")]
     pub fn update_time(&mut self) -> Duration {
-        let now = Instant::now();
+        let now = std::time::Instant::now();
+        let last_frame_duration: Duration = now.duration_since(self.last_tick_instant).into();
+        self.last_tick_instant = now;
+        self.last_tick_duration = last_frame_duration;
+        last_frame_duration
+    }
+
+    #[cfg(feature = "web-backend")]
+    pub fn update_time(&mut self) -> Duration {
+        let now = web_time::Instant::now();
         let last_frame_duration: Duration = now.duration_since(self.last_tick_instant).into();
         self.last_tick_instant = now;
         self.last_tick_duration = last_frame_duration;
@@ -85,6 +105,22 @@ impl App {
                 self.counter = self.counter + 1;
             }
             AppEvent::UpdateCanvas(s) => self.update_canvas(s),
+            AppEvent::CompileDsl(dsl) => {
+                // Compile the DSL and update the canvas
+                let effect = EffectDsl::new()
+                    .compiler()
+                    .compile(dsl.as_str());
+
+                match effect {
+                    Ok(effect) => {
+                        self.effects.add_unique_effect(0u32, effect);
+                    }
+                    Err(e)     => {
+                        #[cfg(feature = "web-backend")]
+                        web_sys::console::error_1(&e.to_string().into());
+                    }
+                }
+            }
             _ => {}
         }
     }
