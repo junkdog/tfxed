@@ -1,9 +1,11 @@
-mod terminal;
+mod app;
+mod dispatcher;
+mod effects;
 mod event;
 mod event_handler;
-mod dispatcher;
+mod gruvbox;
+mod terminal;
 mod tui;
-mod app;
 
 use ratatui::style::Stylize;
 use std::io::Stdout;

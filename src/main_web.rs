@@ -1,8 +1,10 @@
 mod app;
-mod terminal;
+mod dispatcher;
+mod effects;
 mod event;
 mod event_handler;
-mod dispatcher;
+mod gruvbox;
+mod terminal;
 mod tui;
 
 use std::collections::HashMap;
