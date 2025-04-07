@@ -1,48 +1,47 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1.0, user-scalable=no"
-  />
-  <link
-          rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/firacode/6.2.0/fira_code.min.css"
-  />
-  <title>tfxed</title>
-  <style>
+    <meta charset="UTF-8" />
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/firacode/6.2.0/fira_code.min.css"
+    />
+    <title>tfxed</title>
+    <style>
     html, body {
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      width: 100vw;
-      overflow: hidden;
-      font-family: "Fira Code", monospace;
-      background-color: #121212;
-      color: white;
-      display: flex;
-      flex-direction: column;
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+        font-family: "Fira Code", monospace;
+        background-color: #121212;
+        color: white;
+        display: flex;
+        flex-direction: column;
     }
 
     #container {
-      display: flex;
-      flex: 1;
-      width: 100%;
-      min-height: 0;
+        display: flex;
+        flex: 1;
+        width: 100%;
+        min-height: 0;
     }
 
     #editor {
-      width: 50%;
-      height: 100%;
+        width: 50%;
+        height: 100%;
     }
 
     #divider {
-      width: 5px;
-      cursor: col-resize;
-      background-color: #333;
+        width: 5px;
+        cursor: col-resize;
+        background-color: #333;
     }
-
     #content {
       width: 50%;
       height: 100%;
@@ -78,7 +77,7 @@
 </div>
 
 <textarea id="buffer-input" placeholder="Paste ANSI-escaped ASCII here..."></textarea>
-
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/ace.js"></script>
 <script>
   const editor = ace.edit("editor");
@@ -91,45 +90,58 @@
   // Query param utils
   function updateQueryParam(key, value) {
     const url = new URL(window.location);
+    url.searchParams.set("last_update", Date.now().toString());
+
     if (value === null) {
       url.searchParams.delete(key);
     } else {
       url.searchParams.set(key, value);
     }
-    url.searchParams.set("last_update", Date.now().toString());
     history.replaceState(null, "", url);
   }
 
-  // Load from query params
   const params = new URLSearchParams(window.location.search);
   const code = params.get("code");
   const buffer = params.get("buffer");
 
-  function base64Encode(str) {
-    const bytes = new TextEncoder().encode(str);
-    const bin = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
-    return btoa(bin);
+  function base64UrlEncode(bytes) {
+    const bin = Array.from(bytes, b => String.fromCharCode(b)).join('');
+    return btoa(bin)
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, ''); // strip padding
   }
 
-  function base64Decode(base64) {
-    const bin = atob(base64);
-    const bytes = new Uint8Array([...bin].map(char => char.charCodeAt(0)));
-    return new TextDecoder().decode(bytes);
+  function base64Decode(b64) {
+    const bin = atob(b64);
+    return Uint8Array.from([...bin].map(c => c.charCodeAt(0)));
+  }
+
+  function deflateAndEncode(str) {
+      const inputBytes = new TextEncoder().encode(str);
+      const compressed = pako.deflate(inputBytes, { raw: true });
+      return base64UrlEncode(compressed);
+  }
+
+  function decodeAndInflate(b64) {
+    const compressed = base64Decode(b64);
+    const decompressed = pako.inflate(compressed, { raw: true });
+    return new TextDecoder().decode(decompressed);
   }
 
   if (code) {
-    try {
-      editor.setValue(base64Decode(code), -1);
-    } catch {
-      console.warn("Invalid base64 in ?code");
-    }
+      try {
+          editor.setValue(decodeAndInflate(code), -1);
+      } catch {
+          console.warn("Invalid compressed code in ?code");
+      }
   }
 
   if (buffer) {
     try {
-      bufferInput.value = base64Decode(buffer);
+        bufferInput.value = decodeAndInflate(buffer);
     } catch {
-      console.warn("Invalid base64 in ?buffer");
+      console.warn("Invalid compressed buffer in ?buffer");
     }
   }
 
@@ -137,17 +149,20 @@
   window.addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === "s") {
       e.preventDefault();
-      const encoded = base64Encode(editor.getValue(0));
-      updateQueryParam("code", encoded);
 
-      updateQueryParam("buffer", base64Encode(bufferInput.value));
+      const compressed_code = deflateAndEncode(editor.getValue(0));
+      updateQueryParam("code", compressed_code);
+
+      const compressed_buffer = deflateAndEncode(bufferInput.value);
+      updateQueryParam("buffer", compressed_buffer);
     }
   });
 
   // save buffer on input
   bufferInput.addEventListener("input", () => {
-    const encoded = base64Encode(bufferInput.value);
-    updateQueryParam("buffer", encoded);
+    const compressed = deflateAndEncode(bufferInput.value);
+          console.log("Compressed buffer (base64):", compressed);
+    updateQueryParam("buffer", compressed);
   });
 
   // draggable splitter

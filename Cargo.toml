@@ -18,10 +18,11 @@ web-sys = { version = "0.3.77", features = ["Location", "Window"], optional = tr
 base64 = "0.22.1"
 percent-encoding = "2.3.1"
 web-time = { version = "1.1.0", optional = true }
+miniz_oxide = {  version = "0.7", optional = true }
 
 [features]
 default = []
-web-backend = ["ratzilla", "web-sys", "web-time", "tachyonfx/web-time"]
+web-backend = ["ratzilla", "web-sys", "web-time", "miniz_oxide", "tachyonfx/web-time"]
 crossterm-backend = ["crossterm", "ratatui/crossterm", "tachyonfx/crossterm"]
 
 [[bin]]

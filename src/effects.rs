@@ -7,6 +7,13 @@ use ratatui::widgets::{Block, Clear, Padding};
 use tachyonfx::{fx, Duration, Effect};
 use crate::gruvbox::Gruvbox;
 
+#[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Ord, Eq, Default)]
+pub enum EffectKind {
+    DslErrorPopup,
+    #[default]
+    Editor
+}
+
 pub fn display_dsl_error(
     duration: Duration,
     error_message: String,

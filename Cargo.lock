@@ -829,6 +829,7 @@ dependencies = [
  "bitflags",
  "color-eyre",
  "crossterm",
+ "miniz_oxide",
  "percent-encoding",
  "ratatui",
  "ratzilla",

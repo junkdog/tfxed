@@ -9,12 +9,12 @@ use ratatui::widgets::{Block, BorderType, Paragraph, Widget};
 use tachyonfx::{ref_count, BufferRenderer, CenteredShrink, Duration, Effect, EffectManager, RefCount};
 use tachyonfx::dsl::EffectDsl;
 use tachyonfx::fx::consume_tick;
-use crate::effects::display_dsl_error;
+use crate::effects::{display_dsl_error, EffectKind};
 use crate::event::{AppEvent, KeyCode, KeyEvent};
 
 pub struct App {
     sender: std::sync::mpsc::Sender<AppEvent>,
-    effects: EffectManager<u32>,
+    effects: EffectManager<EffectKind>,
     canvas_buf: RefCount<Buffer>,
     #[cfg(feature = "crossterm-backend")]
     last_tick_instant: std::time::Instant,
@@ -115,10 +115,13 @@ impl App {
 
                 match effect {
                     Ok(effect) => {
-                        self.effects.add_unique_effect(0u32, effect);
+                        use EffectKind::*;
+
+                        // register compiled effect
+                        self.effects.add_unique_effect(Editor, effect);
 
                         // clear any old error popup
-                        self.effects.add_unique_effect(0xf00u32, consume_tick());
+                        self.effects.add_unique_effect(DslErrorPopup, consume_tick());
                     }
                     Err(e)     => {
                         #[cfg(feature = "web-backend")]
@@ -143,7 +146,7 @@ impl App {
         position: (u32, u32),
     ) {
         let duration = Duration::from_millis(15000);
-        self.effects.add_unique_effect(0xf00u32,
+        self.effects.add_unique_effect(EffectKind::DslErrorPopup,
             display_dsl_error(duration, error_message, referenced_code, position)
         );
     }
