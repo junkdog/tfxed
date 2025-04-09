@@ -1,13 +1,13 @@
 use std::io;
 use std::sync::mpsc;
 use crate::event_handler::EventHandler;
-use crate::event::AppEvent;
 use ratatui::layout::Size;
 use ratatui::{Frame, Terminal};
 use ratatui::prelude::Backend;
 
 #[cfg(feature = "web-backend")]
 use ratzilla::WebRenderer;
+use tfxed_core::AppEvent;
 
 /// Representation of a terminal user interface.
 ///
@@ -29,7 +29,6 @@ impl<BACKEND: Backend + 'static> Tui<BACKEND> {
         self.events.sender()
     }
 
-    #[cfg(feature = "crossterm-backend")]
     pub fn draw(
         &mut self,
         render_ui: impl FnMut(&mut Frame),
@@ -37,14 +36,14 @@ impl<BACKEND: Backend + 'static> Tui<BACKEND> {
         self.terminal.draw(render_ui)?;
         Ok(())
     }
-
-    #[cfg(feature = "web-backend")]
-    pub fn draw(
-        self,
-        render_ui: impl FnMut(&mut Frame) + 'static,
-    ) {
-        self.terminal.draw_web(render_ui);
-    }
+    //
+    // #[cfg(feature = "web-backend")]
+    // pub fn draw(
+    //     self,
+    //     render_ui: impl FnMut(&mut Frame) + 'static,
+    // ) {
+    //     self.terminal.draw_web(render_ui);
+    // }
 
     pub fn size(&self) -> Size {
         self.terminal.size().unwrap()

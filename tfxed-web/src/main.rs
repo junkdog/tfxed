@@ -1,27 +1,18 @@
-mod app;
-mod dispatcher;
-mod effects;
-mod event;
 mod event_handler;
-mod gruvbox;
-mod terminal;
-mod tui;
 
 use std::collections::HashMap;
 use base64::{alphabet, Engine};
 use base64::engine::{general_purpose, GeneralPurpose};
 use color_eyre::eyre;
-use terminal::terminal;
 
 use ratatui::style::Stylize;
 
-use crate::app::App;
-use crate::dispatcher::Dispatcher;
-use crate::event::AppEvent;
-use crate::event_handler::EventHandler;
+use crate::event_handler::{convert_key_event, EventHandler};
 use color_eyre::eyre::{eyre, Result, WrapErr};
 use miniz_oxide::inflate::decompress_to_vec;
-use ratzilla::WebRenderer;
+use ratatui::Terminal as RatTerminal;
+use ratzilla::{DomBackend, WebRenderer};
+use tfxed_core::{App, AppEvent, Dispatcher};
 
 fn main() -> Result<()> {
     color_eyre::install()?;
@@ -32,7 +23,7 @@ fn main() -> Result<()> {
     let mut terminal = terminal()?;
     terminal.on_key_event(move |e| {
         if !e.alt && !e.ctrl {
-            key_event_sender.dispatch(AppEvent::KeyPress(e.into()));
+            key_event_sender.dispatch(AppEvent::KeyPress(convert_key_event(e)));
         }
     });
 
@@ -90,7 +81,8 @@ fn main() -> Result<()> {
                 }
             }
 
-            if let Some(last_update) = query_map.get("last_update") {
+            if let Some(time) = query_map.get("last_update") {
+                last_update = time.clone();
                 web_sys::console::log_1(&format!("Last update: {}", last_update).into());
             }
         }
@@ -115,15 +107,8 @@ fn parse_query_params(query: &str) -> Result<HashMap<String, String>> {
         let val_bytes = percent_decode(val_enc)?;
 
         let key = String::from_utf8(key_bytes)?;
-
-        let val_str = String::from_utf8(val_bytes)?;
-        if key != "last_update" {
-            web_sys::console::log_1(&format!("{key} = {val_str}").into());
-            map.insert(key, val_str);
-        } else {
-            // last_update is a string (long)
-            map.insert(key, val_str);
-        }
+        let value = String::from_utf8(val_bytes)?;
+        map.insert(key, value);
     }
 
     Ok(map)
@@ -140,4 +125,12 @@ pub fn decompress(compressed: Vec<u8>) -> Result<String> {
 
 fn percent_decode(input: &str) -> Result<Vec<u8>> {
     Ok(percent_encoding::percent_decode(input.as_bytes()).collect())
+}
+
+fn terminal() -> Result<RatTerminal<DomBackend>> {
+    let backend = DomBackend::new_by_id("content")
+        .map_err(|e| eyre!("{e}"))?;
+
+    RatTerminal::new(backend)
+        .wrap_err("failed to initialize terminal")
 }

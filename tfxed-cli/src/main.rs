@@ -1,24 +1,15 @@
-mod app;
-mod dispatcher;
-mod effects;
-mod event;
 mod event_handler;
-mod gruvbox;
-mod terminal;
 mod tui;
 
 use ratatui::style::Stylize;
 use std::io::Stdout;
 use ansi_to_tui::IntoText;
-use terminal::terminal;
 
-use crate::app::App;
 use crate::event_handler::EventHandler;
 use crate::tui::Tui;
 use color_eyre::eyre::{Result, WrapErr};
 use ratatui::backend::CrosstermBackend;
-use crate::dispatcher::Dispatcher;
-use crate::event::AppEvent;
+use tfxed_core::{App, AppEvent, Dispatcher};
 
 fn init_tui() -> Result<Tui<CrosstermBackend<Stdout>>> {
     let terminal = terminal()?;
@@ -57,4 +48,8 @@ fn main() -> Result<()> {
     Ok(())
 }
 
+fn terminal() -> Result<ratatui::DefaultTerminal> {
+    Ok(ratatui::try_init()
+        .wrap_err("failed to initialize terminal")?)
+}
 

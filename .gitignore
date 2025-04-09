@@ -1,5 +1,5 @@
 todo.personal.md
 .idea
-/target
-/dist
-/pkg
+target
+dist
+pkg

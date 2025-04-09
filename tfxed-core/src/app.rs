@@ -16,7 +16,7 @@ pub struct App {
     sender: std::sync::mpsc::Sender<AppEvent>,
     effects: EffectManager<EffectKind>,
     canvas_buf: RefCount<Buffer>,
-    #[cfg(feature = "crossterm-backend")]
+    #[cfg(not(feature = "web-backend"))]
     last_tick_instant: std::time::Instant,
     #[cfg(feature = "web-backend")]
     last_tick_instant: web_time::Instant,
@@ -30,7 +30,7 @@ impl App {
         let area = ratatui::layout::Rect::new(0, 0, 20, 10);
         let canvas_buf = ref_count(Buffer::empty(area));
 
-        #[cfg(feature = "crossterm-backend")]
+        #[cfg(not(feature = "web-backend"))]
         let last_tick_instant = std::time::Instant::now();
 
         #[cfg(feature = "web-backend")]
@@ -77,7 +77,7 @@ impl App {
         self.counter
     }
 
-    #[cfg(feature = "crossterm-backend")]
+    #[cfg(not(feature = "web-backend"))]
     pub fn update_time(&mut self) -> Duration {
         let now = std::time::Instant::now();
         let last_frame_duration: Duration = now.duration_since(self.last_tick_instant).into();
@@ -124,9 +124,6 @@ impl App {
                         self.effects.add_unique_effect(DslErrorPopup, consume_tick());
                     }
                     Err(e)     => {
-                        #[cfg(feature = "web-backend")]
-                        web_sys::console::error_1(&e.to_string().into());
-
                         self.display_error_popup(
                             e.source.to_string(),
                             e.error_line().to_string(),

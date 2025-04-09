@@ -1,0 +1,23 @@
+[package]
+name = "tfxed-web"
+version = "0.1.0"
+authors = ["Adrian Papari <junkdog@angelhill.net>"]
+license = "MIT"
+edition = "2021"
+description = "Web interface for tachyonfx effect DSL editor"
+
+[dependencies]
+tfxed-core = { path = "../tfxed-core", features = ["web-backend"] }
+ratatui = { version = "0.29.0", default-features = false }
+ratzilla = "0.0.5"
+color-eyre = "0.6.3"
+tachyonfx = { version = "0.13.0", default-features = false, features = ["dsl", "web-time"] }
+web-sys = { version = "0.3.77", features = ["Location", "Window", "console"] }
+web-time = "1.1.0"
+base64 = "0.22.1"
+percent-encoding = "2.3.1"
+miniz_oxide = "0.7"
+
+[[bin]]
+name = "tfxed-web"
+path = "src/main.rs"

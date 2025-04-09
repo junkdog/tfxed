@@ -34,6 +34,10 @@ pub enum KeyCode {
     Esc,
 }
 
+pub trait IntoKeyEvent {
+    fn into_key_event(self) -> KeyEvent;
+}
+
 bitflags! {
     pub struct ModifierKeys: u8 {
         const SHIFT   = 0b0000_0001;

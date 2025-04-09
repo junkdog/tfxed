@@ -821,19 +821,41 @@ dependencies = [
 ]
 
 [[package]]
-name = "tfxed"
+name = "tfxed-cli"
 version = "0.1.0"
 dependencies = [
  "ansi-to-tui",
- "base64",
- "bitflags",
  "color-eyre",
  "crossterm",
+ "ratatui",
+ "tachyonfx",
+ "tfxed-core",
+]
+
+[[package]]
+name = "tfxed-core"
+version = "0.1.0"
+dependencies = [
+ "ansi-to-tui",
+ "bitflags",
+ "color-eyre",
+ "ratatui",
+ "tachyonfx",
+ "web-time",
+]
+
+[[package]]
+name = "tfxed-web"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "color-eyre",
  "miniz_oxide",
  "percent-encoding",
  "ratatui",
  "ratzilla",
  "tachyonfx",
+ "tfxed-core",
  "web-sys",
  "web-time",
 ]
