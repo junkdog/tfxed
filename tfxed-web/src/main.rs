@@ -1,6 +1,8 @@
 mod event_handler;
+mod interop;
 
 use std::collections::HashMap;
+use std::sync::mpsc::Sender;
 use base64::{alphabet, Engine};
 use base64::engine::{general_purpose, GeneralPurpose};
 use color_eyre::eyre;
@@ -12,18 +14,23 @@ use color_eyre::eyre::{eyre, Result, WrapErr};
 use miniz_oxide::inflate::decompress_to_vec;
 use ratatui::Terminal as RatTerminal;
 use ratzilla::{DomBackend, WebRenderer};
+use wasm_bindgen::prelude::wasm_bindgen;
 use tfxed_core::{App, AppEvent, Dispatcher};
+use crate::interop::set_js_sender;
 
 fn main() -> Result<()> {
     color_eyre::install()?;
 
     let events = EventHandler::new();
-    let key_event_sender = events.sender();
+    let sender = events.sender();
+
+    // globally set the sender for the JS interop functions
+    set_js_sender(sender.clone());
 
     let mut terminal = terminal()?;
     terminal.on_key_event(move |e| {
         if !e.alt && !e.ctrl {
-            key_event_sender.dispatch(AppEvent::KeyPress(convert_key_event(e)));
+            sender.dispatch(AppEvent::KeyPress(convert_key_event(e)));
         }
     });
 
@@ -39,53 +46,53 @@ fn main() -> Result<()> {
             app.apply_event(event);
         });
 
-        let search_url = web_sys::window()
-            .unwrap()
-            .location()
-            .search()
-            .unwrap();
-
-        if last_search_url != search_url {
-            last_search_url = search_url.clone();
-            let query_map = parse_query_params(&search_url);
-            let query_map = if let Ok(query_map) = query_map {
-                web_sys::console::log_1(&format!("Parsed query params").into());
-                query_map
-            } else {
-                web_sys::console::log_1(&format!("Failed to parse query params").into());
-                HashMap::new()
-            };
-
-            let b64decoder = GeneralPurpose::new(&alphabet::URL_SAFE, general_purpose::NO_PAD);
-
-            if let Some(code_b64) = query_map.get("code") {
-                if let Ok(decoded) = b64decoder.decode(code_b64) {
-                    if let Ok(code_str) = decompress(decoded) {
-                        web_sys::console::log_1(&format!("Decoded code:\n{}", code_str).into());
-                        app.sender().dispatch(AppEvent::CompileDsl(code_str));
-                    }
-                }
-            }
-
-            if let Some(buffer_b64) = query_map.get("buffer") {
-                if let Ok(decoded) = b64decoder.decode(buffer_b64) {
-                    if let Ok(buffer_str) = decompress(decoded) {
-                        web_sys::console::log_1(&format!("Decoded buffer:\n{}", buffer_str).into());
-                        if buffer_str != last_buffer {
-                            last_buffer = buffer_str.clone();
-                            app.sender().dispatch(AppEvent::UpdateCanvas(buffer_str));
-                        }
-                    } else {
-                        web_sys::console::log_1(&format!("Failed to decode buffer :(").into());
-                    }
-                }
-            }
-
-            if let Some(time) = query_map.get("last_update") {
-                last_update = time.clone();
-                web_sys::console::log_1(&format!("Last update: {}", last_update).into());
-            }
-        }
+        // let search_url = web_sys::window()
+        //     .unwrap()
+        //     .location()
+        //     .search()
+        //     .unwrap();
+        //
+        // if last_search_url != search_url {
+        //     last_search_url = search_url.clone();
+        //     let query_map = parse_query_params(&search_url);
+        //     let query_map = if let Ok(query_map) = query_map {
+        //         web_sys::console::log_1(&format!("Parsed query params").into());
+        //         query_map
+        //     } else {
+        //         web_sys::console::log_1(&format!("Failed to parse query params").into());
+        //         HashMap::new()
+        //     };
+        //
+        //     let b64decoder = GeneralPurpose::new(&alphabet::URL_SAFE, general_purpose::NO_PAD);
+        //
+        //     if let Some(code_b64) = query_map.get("code") {
+        //         if let Ok(decoded) = b64decoder.decode(code_b64) {
+        //             if let Ok(code_str) = decompress(decoded) {
+        //                 web_sys::console::log_1(&format!("Decoded code:\n{}", code_str).into());
+        //                 app.sender().dispatch(AppEvent::CompileDsl(code_str));
+        //             }
+        //         }
+        //     }
+        //
+        //     if let Some(buffer_b64) = query_map.get("buffer") {
+        //         if let Ok(decoded) = b64decoder.decode(buffer_b64) {
+        //             if let Ok(buffer_str) = decompress(decoded) {
+        //                 web_sys::console::log_1(&format!("Decoded buffer:\n{}", buffer_str).into());
+        //                 if buffer_str != last_buffer {
+        //                     last_buffer = buffer_str.clone();
+        //                     app.sender().dispatch(AppEvent::UpdateCanvas(buffer_str));
+        //                 }
+        //             } else {
+        //                 web_sys::console::log_1(&format!("Failed to decode buffer :(").into());
+        //             }
+        //         }
+        //     }
+        //
+        //     if let Some(time) = query_map.get("last_update") {
+        //         last_update = time.clone();
+        //         web_sys::console::log_1(&format!("Last update: {}", last_update).into());
+        //     }
+        // }
 
         app.update_time();
         app.render_ui(f);

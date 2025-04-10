@@ -18,6 +18,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f26201604c87b1e01bd3d98f8d5d9a8fcbb815e8cedb41ffccbeb4bf593a35fe"
 
 [[package]]
+name = "adler2"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "512761e0bb2578dd7380c6baaa0f4ce03e84f95e960231d1dec8bf4d7d6e2627"
+
+[[package]]
 name = "allocator-api2"
 version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -58,7 +64,7 @@ dependencies = [
  "cc",
  "cfg-if",
  "libc",
- "miniz_oxide",
+ "miniz_oxide 0.7.4",
  "object",
  "rustc-demangle",
 ]
@@ -464,6 +470,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "miniz_oxide"
+version = "0.8.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3be647b768db090acb35d5ec5db2b0e1f1de11133ca123b9eacf5137868f892a"
+dependencies = [
+ "adler2",
+]
+
+[[package]]
 name = "mio"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -850,12 +865,13 @@ version = "0.1.0"
 dependencies = [
  "base64",
  "color-eyre",
- "miniz_oxide",
+ "miniz_oxide 0.8.8",
  "percent-encoding",
  "ratatui",
  "ratzilla",
  "tachyonfx",
  "tfxed-core",
+ "wasm-bindgen",
  "web-sys",
  "web-time",
 ]
