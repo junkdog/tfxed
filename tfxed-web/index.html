@@ -12,179 +12,194 @@
     />
     <title>tfxed</title>
     <style>
-    html, body {
-        margin: 0;
-        padding: 0;
-        height: 100vh;
-        width: 100vw;
-        overflow: hidden;
-        font-family: "Fira Code", monospace;
-        background-color: #121212;
-        color: white;
-        display: flex;
-        flex-direction: column;
-    }
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            font-family: "Fira Code", monospace;
+            background-color: #121212;
+            color: white;
+            display: flex;
+            flex-direction: column;
+        }
 
-    #container {
-        display: flex;
-        flex: 1;
-        width: 100%;
-        min-height: 0;
-    }
+        #container {
+            display: flex;
+            flex: 1;
+            width: 100%;
+            min-height: 0;
+        }
 
-    #editor {
-        width: 50%;
-        height: 100%;
-    }
+        #editor {
+            width: 50%;
+            height: 100%;
+        }
 
-    #divider {
-        width: 5px;
-        cursor: col-resize;
-        background-color: #333;
-    }
-    #content {
-      width: 50%;
-      height: 100%;
-      padding: 1em;
-      overflow: auto;
-    }
+        #divider {
+            width: 5px;
+            cursor: col-resize;
+            background-color: #333;
+        }
+        #content {
+            width: 50%;
+            height: 100%;
+            padding: 1em;
+            overflow: auto;
+        }
 
-    #buffer-input {
-      background: #1e1e1e;
-      color: white;
-      border: none;
-      resize: vertical;
-      font-family: inherit;
-      font-size: 14px;
-      width: 100%;
-      padding: 0.5em;
-      box-sizing: border-box;
-      border-top: 1px solid #333;
-      height: 100px;
-    }
+        #buffer-input {
+            background: #1e1e1e;
+            color: white;
+            border: none;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 14px;
+            width: 100%;
+            padding: 0.5em;
+            box-sizing: border-box;
+            border-top: 1px solid #333;
+            height: 100px;
+        }
 
-    pre {
-      font-size: 16px;
-      margin: 0;
-    }
-  </style>
+        pre {
+            font-size: 16px;
+            margin: 0;
+        }
+    </style>
 </head>
 <body>
 <div id="container">
-  <div id="editor"></div>
-  <div id="divider"></div>
-  <div id="content"></div>
+    <div id="editor"></div>
+    <div id="divider"></div>
+    <div id="content"></div>
 </div>
 
 <textarea id="buffer-input" placeholder="Paste ANSI-escaped ASCII here..."></textarea>
+
 <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/ace.js"></script>
 <script>
-  const editor = ace.edit("editor");
-  editor.setTheme("ace/theme/monokai");
-  editor.session.setMode("ace/mode/rust");
-  editor.setFontSize("14px");
+    const editor = ace.edit("editor");
+    editor.setTheme("ace/theme/monokai");
+    editor.session.setMode("ace/mode/rust");
+    editor.setFontSize("14px");
 
-  const bufferInput = document.getElementById("buffer-input");
+    const bufferInput = document.getElementById("buffer-input");
 
-  // Query param utils
-  function updateQueryParam(key, value) {
-    const url = new URL(window.location);
-    url.searchParams.set("last_update", Date.now().toString());
+    // Query param utils
+    function updateQueryParam(key, value) {
+        const url = new URL(window.location);
+        url.searchParams.set("last_update", Date.now().toString());
 
-    if (value === null) {
-      url.searchParams.delete(key);
-    } else {
-      url.searchParams.set(key, value);
+        if (value === null) {
+            url.searchParams.delete(key);
+        } else {
+            url.searchParams.set(key, value);
+        }
+        history.replaceState(null, "", url);
     }
-    history.replaceState(null, "", url);
-  }
 
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get("code");
-  const buffer = params.get("buffer");
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    const buffer = params.get("buffer");
 
-  function base64UrlEncode(bytes) {
-    const bin = Array.from(bytes, b => String.fromCharCode(b)).join('');
-    return btoa(bin)
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/, ''); // strip padding
-  }
-
-  function base64Decode(b64) {
-    const bin = atob(b64);
-    return Uint8Array.from([...bin].map(c => c.charCodeAt(0)));
-  }
-
-  function deflateAndEncode(str) {
-      const inputBytes = new TextEncoder().encode(str);
-      const compressed = pako.deflate(inputBytes, { raw: true });
-      return base64UrlEncode(compressed);
-  }
-
-  function decodeAndInflate(b64) {
-    const compressed = base64Decode(b64);
-    const decompressed = pako.inflate(compressed, { raw: true });
-    return new TextDecoder().decode(decompressed);
-  }
-
-  if (code) {
-      try {
-          editor.setValue(decodeAndInflate(code), -1);
-      } catch {
-          console.warn("Invalid compressed code in ?code");
-      }
-  }
-
-  if (buffer) {
-    try {
-        bufferInput.value = decodeAndInflate(buffer);
-    } catch {
-      console.warn("Invalid compressed buffer in ?buffer");
+    function base64UrlEncode(bytes) {
+        const bin = Array.from(bytes, b => String.fromCharCode(b)).join('');
+        return btoa(bin)
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=+$/, ''); // strip padding
     }
-  }
 
-  // save code on Ctrl+S / Cmd+S
-  window.addEventListener("keydown", (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-      e.preventDefault();
-
-      const compressed_code = deflateAndEncode(editor.getValue(0));
-      updateQueryParam("code", compressed_code);
-
-      const compressed_buffer = deflateAndEncode(bufferInput.value);
-      updateQueryParam("buffer", compressed_buffer);
+    function base64Decode(b64) {
+        const bin = atob(b64);
+        return Uint8Array.from([...bin].map(c => c.charCodeAt(0)));
     }
-  });
 
-  // save buffer on input
-  bufferInput.addEventListener("input", () => {
-    const compressed = deflateAndEncode(bufferInput.value);
-          console.log("Compressed buffer (base64):", compressed);
-    updateQueryParam("buffer", compressed);
-  });
+    function deflateAndEncode(str) {
+        const inputBytes = new TextEncoder().encode(str);
+        const compressed = pako.deflate(inputBytes, { raw: true });
+        return base64UrlEncode(compressed);
+    }
 
-  // draggable splitter
-  const divider = document.getElementById("divider");
-  const editorEl = document.getElementById("editor");
-  const contentEl = document.getElementById("content");
+    function decodeAndInflate(b64) {
+        const compressed = base64Decode(b64);
+        const decompressed = pako.inflate(compressed, { raw: true });
+        return new TextDecoder().decode(decompressed);
+    }
 
-  let isDragging = false;
-  divider.addEventListener("mousedown", () => (isDragging = true));
-  window.addEventListener("mouseup", () => (isDragging = false));
-  window.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
-    const percent = (e.clientX / window.innerWidth) * 100;
-    editorEl.style.width = percent + "%";
-    contentEl.style.width = 100 - percent + "%";
-    editor.resize();
-  });
-</script>
+    if (code) {
+        try {
+            editor.setValue(decodeAndInflate(code), -1);
+        } catch {
+            console.warn("Invalid compressed code in ?code");
+        }
+    }
 
-<script type="module">
-  import init from "./pkg/ratzilla.js";
-  init();
+    if (buffer) {
+        try {
+            bufferInput.value = decodeAndInflate(buffer);
+        } catch {
+            console.warn("Invalid compressed buffer in ?buffer");
+        }
+    }
+
+    // save code on Ctrl+S / Cmd+S
+    window.addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+            e.preventDefault();
+
+            const dslCode = editor.getValue(0);
+            const compressed_code = deflateAndEncode(dslCode);
+            updateQueryParam("code", compressed_code);
+
+            const bufferValue = bufferInput.value;
+            const compressed_buffer = deflateAndEncode(bufferValue);
+            updateQueryParam("buffer", compressed_buffer);
+
+            try {
+                window.wasmBindings.compile_dsl(dslCode);
+                console.log("DSL code sent to Rust for compilation");
+            } catch (error) {
+                console.error("Error calling Rust compile_dsl:", error);
+            }
+        }
+    });
+
+    // save buffer on input and call Rust update_canvas
+    bufferInput.addEventListener("input", () => {
+        const bufferValue = bufferInput.value;
+        const compressed = deflateAndEncode(bufferValue);
+        console.log("Compressed buffer (base64):", compressed);
+        updateQueryParam("buffer", compressed);
+
+        // call rust update_canvas when buffer input changes
+        try {
+            console.log("sending canvas event to Rust");
+            console.log("Canvas update sent to Rust");
+            window.wasmBindings.update_canvas(bufferValue);
+        } catch (error) {
+            console.error("Error calling Rust update_canvas:", error);
+        }
+    });
+
+    // draggable splitter
+    const divider = document.getElementById("divider");
+    const editorEl = document.getElementById("editor");
+    const contentEl = document.getElementById("content");
+
+    let isDragging = false;
+    divider.addEventListener("mousedown", () => (isDragging = true));
+    window.addEventListener("mouseup", () => (isDragging = false));
+    window.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+        const percent = (e.clientX / window.innerWidth) * 100;
+        editorEl.style.width = percent + "%";
+        contentEl.style.width = 100 - percent + "%";
+        editor.resize();
+    });
 </script>
 </body>
 </html>

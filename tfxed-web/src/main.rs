@@ -1,22 +1,18 @@
 mod event_handler;
 mod interop;
 
+use base64::Engine;
 use std::collections::HashMap;
-use std::sync::mpsc::Sender;
-use base64::{alphabet, Engine};
-use base64::engine::{general_purpose, GeneralPurpose};
-use color_eyre::eyre;
 
 use ratatui::style::Stylize;
 
 use crate::event_handler::{convert_key_event, EventHandler};
+use crate::interop::set_js_sender;
 use color_eyre::eyre::{eyre, Result, WrapErr};
 use miniz_oxide::inflate::decompress_to_vec;
 use ratatui::Terminal as RatTerminal;
 use ratzilla::{DomBackend, WebRenderer};
-use wasm_bindgen::prelude::wasm_bindgen;
 use tfxed_core::{App, AppEvent, Dispatcher};
-use crate::interop::set_js_sender;
 
 fn main() -> Result<()> {
     color_eyre::install()?;
@@ -36,63 +32,11 @@ fn main() -> Result<()> {
 
     let mut app = App::new(events.sender());
 
-    let mut last_search_url = String::new();
-    let mut last_buffer = String::new();
-    let mut last_update = String::new();
-    let mut last_code = String::new();
-
     terminal.draw_web(move |f| {
         events.receive_events(|event| {
             app.apply_event(event);
         });
 
-        // let search_url = web_sys::window()
-        //     .unwrap()
-        //     .location()
-        //     .search()
-        //     .unwrap();
-        //
-        // if last_search_url != search_url {
-        //     last_search_url = search_url.clone();
-        //     let query_map = parse_query_params(&search_url);
-        //     let query_map = if let Ok(query_map) = query_map {
-        //         web_sys::console::log_1(&format!("Parsed query params").into());
-        //         query_map
-        //     } else {
-        //         web_sys::console::log_1(&format!("Failed to parse query params").into());
-        //         HashMap::new()
-        //     };
-        //
-        //     let b64decoder = GeneralPurpose::new(&alphabet::URL_SAFE, general_purpose::NO_PAD);
-        //
-        //     if let Some(code_b64) = query_map.get("code") {
-        //         if let Ok(decoded) = b64decoder.decode(code_b64) {
-        //             if let Ok(code_str) = decompress(decoded) {
-        //                 web_sys::console::log_1(&format!("Decoded code:\n{}", code_str).into());
-        //                 app.sender().dispatch(AppEvent::CompileDsl(code_str));
-        //             }
-        //         }
-        //     }
-        //
-        //     if let Some(buffer_b64) = query_map.get("buffer") {
-        //         if let Ok(decoded) = b64decoder.decode(buffer_b64) {
-        //             if let Ok(buffer_str) = decompress(decoded) {
-        //                 web_sys::console::log_1(&format!("Decoded buffer:\n{}", buffer_str).into());
-        //                 if buffer_str != last_buffer {
-        //                     last_buffer = buffer_str.clone();
-        //                     app.sender().dispatch(AppEvent::UpdateCanvas(buffer_str));
-        //                 }
-        //             } else {
-        //                 web_sys::console::log_1(&format!("Failed to decode buffer :(").into());
-        //             }
-        //         }
-        //     }
-        //
-        //     if let Some(time) = query_map.get("last_update") {
-        //         last_update = time.clone();
-        //         web_sys::console::log_1(&format!("Last update: {}", last_update).into());
-        //     }
-        // }
 
         app.update_time();
         app.render_ui(f);
