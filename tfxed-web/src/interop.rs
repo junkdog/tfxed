@@ -25,7 +25,7 @@ struct JsSender {
     event_sender: Sender<AppEvent>,
 }
 
-pub fn set_js_sender(sender: Sender<AppEvent>) {
+pub fn init_global_state(sender: Sender<AppEvent>) {
     unsafe {
         SENDER = Some(JsSender { event_sender: sender });
     }

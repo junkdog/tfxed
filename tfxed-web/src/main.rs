@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use ratatui::style::Stylize;
 
 use crate::event_handler::{convert_key_event, EventHandler};
-use crate::interop::set_js_sender;
+use crate::interop::init_global_state;
 use color_eyre::eyre::{eyre, Result, WrapErr};
 use miniz_oxide::inflate::decompress_to_vec;
 use ratatui::Terminal as RatTerminal;
@@ -20,7 +20,7 @@ fn main() -> Result<()> {
     let sender = events.sender();
 
     // globally set the sender for the JS interop functions
-    set_js_sender(sender.clone());
+    init_global_state(sender.clone());
 
     let mut terminal = terminal()?;
     terminal.on_key_event(move |e| {
