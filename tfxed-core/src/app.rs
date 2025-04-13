@@ -3,7 +3,7 @@ use ansi_to_tui::IntoText;
 use ratatui::buffer::Buffer;
 use ratatui::Frame;
 use ratatui::layout::{Alignment, Offset, Rect};
-use ratatui::prelude::{Color, style::Stylize};
+use ratatui::prelude::{Color, style::Stylize, Style};
 use ratatui::text::Text;
 use ratatui::widgets::{Block, BorderType, Paragraph, Widget};
 use tachyonfx::{ref_count, BufferRenderer, CenteredShrink, Duration, Effect, EffectManager, RefCount};
@@ -11,6 +11,8 @@ use tachyonfx::dsl::EffectDsl;
 use tachyonfx::fx::consume_tick;
 use crate::effects::{display_dsl_error, EffectKind};
 use crate::event::{AppEvent, KeyCode, KeyEvent};
+use crate::gruvbox::Gruvbox;
+use crate::widgets::Ruler;
 
 pub struct App {
     sender: std::sync::mpsc::Sender<AppEvent>,
@@ -65,6 +67,15 @@ impl App {
     pub fn render_ui(&mut self, frame: &mut Frame) {
         self.reset_canvas_work_buffer();
         self.update_effects();
+
+        let canvas_size = self.canvas_work_buf
+            .borrow()
+            .area()
+            .as_size();
+
+        Ruler::new(canvas_size)
+            .style(Style::new().fg(Gruvbox::dark2()))
+            .render(frame.area(), &mut frame.buffer_mut());
 
         self.canvas_work_buf.borrow()
             .render_buffer(Offset { x: 2, y: 2 }, &mut frame.buffer_mut());

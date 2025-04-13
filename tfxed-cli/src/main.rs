@@ -39,7 +39,6 @@ fn main() -> Result<()> {
         tui.draw(|f| {
             app.update_time();
             app.render_ui(f);
-            app.render_effects(f);
         })?;
     }
 

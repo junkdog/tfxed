@@ -4,6 +4,7 @@ pub mod dispatcher;
 pub mod effects;
 pub mod event;
 pub mod gruvbox;
+mod widgets;
 
 // Re-export common items for convenience
 pub use app::App;
