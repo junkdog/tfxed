@@ -217,16 +217,43 @@
         { value: ".spacing(", score: 500, meta: "Layout" },
         { value: ".constraints(", score: 500, meta: "Layout" },
 
+        // motion
+        { value: "Motion::LeftToRight", score: 900, meta: "Motion" },
+        { value: "Motion::RightToLeft", score: 900, meta: "Motion" },
+        { value: "Motion::UpToDown"   , score: 900, meta: "Motion" },
+        { value: "Motion::DownToUp"   , score: 900, meta: "Motion" },
+        { value: "LeftToRight", score: 900, meta: "Motion" },
+        { value: "RightToLeft", score: 900, meta: "Motion" },
+        { value: "UpToDown"   , score: 900, meta: "Motion" },
+        { value: "DownToUp"   , score: 900, meta: "Motion" },
+
         // style
         { value: "Style::new()", score: 800, meta: "Style" },
         { value: "Style::default()", score: 800, meta: "Style" },
-        { value: "Modifier::BOLD", score: 1000, meta: "Style" },
-        { value: "Modifier::ITALIC", score: 1000, meta: "Style" },
-        { value: "Modifier::UNDERLINED", score: 1000, meta: "Style" },
         { value: ".add_modifier(", score: 700, meta: "Style" },
         { value: ".remove_modifier(", score: 700, meta: "Style" },
         { value: ".fg(", score: 700, meta: "Style" },
         { value: ".bg(", score: 700, meta: "Style" },
+
+        // modifier
+        { value: "Modifier::BOLD"        , score: 1000, meta: "Modifier" },
+        { value: "Modifier::DIM"         , score: 1000, meta: "Modifier" },
+        { value: "Modifier::ITALIC"      , score: 1000, meta: "Modifier" },
+        { value: "Modifier::UNDERLINED"  , score: 1000, meta: "Modifier" },
+        { value: "Modifier::SLOW_BLINK"  , score: 1000, meta: "Modifier" },
+        { value: "Modifier::RAPID_BLINK" , score: 1000, meta: "Modifier" },
+        { value: "Modifier::REVERSED"    , score: 1000, meta: "Modifier" },
+        { value: "Modifier::HIDDEN"      , score: 1000, meta: "Modifier" },
+        { value: "Modifier::CROSSED_OUT" , score: 1000, meta: "Modifier" },
+        { value: "BOLD"        , score: 1000, meta: "Modifier" },
+        { value: "DIM"         , score: 1000, meta: "Modifier" },
+        { value: "ITALIC"      , score: 1000, meta: "Modifier" },
+        { value: "UNDERLINED"  , score: 1000, meta: "Modifier" },
+        { value: "SLOW_BLINK"  , score: 1000, meta: "Modifier" },
+        { value: "RAPID_BLINK" , score: 1000, meta: "Modifier" },
+        { value: "REVERSED"    , score: 1000, meta: "Modifier" },
+        { value: "HIDDEN"      , score: 1000, meta: "Modifier" },
+        { value: "CROSSED_OUT" , score: 1000, meta: "Modifier" },
 
         // rect
         { value: "Rect::new", score: 800, meta: "Rect" },
@@ -248,6 +275,7 @@
         { value: "ColorSpace::Hsv", score: 800, meta: "ColorSpace" },
 
         // cell filters
+        { value: "All"      , score: 800, meta: "CellFilter" },
         { value: "Area("      , score: 800, meta: "CellFilter" },
         { value: "FgColor("   , score: 800, meta: "CellFilter" },
         { value: "BgColor("   , score: 800, meta: "CellFilter" },
@@ -260,6 +288,8 @@
         { value: "Layout("    , score: 800, meta: "CellFilter" },
         { value: "PositionFn(", score: 800, meta: "CellFilter" },
         { value: "EvalCell("  , score: 800, meta: "CellFilter" },
+        { value: "Text"  , score: 800, meta: "CellFilter" },
+        { value: "CellFilter::All"      , score: 800, meta: "CellFilter" },
         { value: "CellFilter::Area("      , score: 800, meta: "CellFilter" },
         { value: "CellFilter::FgColor("   , score: 800, meta: "CellFilter" },
         { value: "CellFilter::BgColor("   , score: 800, meta: "CellFilter" },
@@ -272,6 +302,7 @@
         { value: "CellFilter::Layout("    , score: 800, meta: "CellFilter" },
         { value: "CellFilter::PositionFn(", score: 800, meta: "CellFilter" },
         { value: "CellFilter::EvalCell("  , score: 800, meta: "CellFilter" },
+        { value: "CellFilter::Text"      , score: 800, meta: "CellFilter" },
 
         // effects
         { value: "term256_colors(",       score: 1000, meta: "Effect" },
@@ -332,7 +363,6 @@
 
     const tfxCustomCompleter = {
         getCompletions: function(editor, session, pos, prefix, callback) {
-
             if (!prefix) {
                 callback(null, tfxCompletions);
                 return;
