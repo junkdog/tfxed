@@ -14,7 +14,6 @@ color-eyre = "0.6.3"
 tachyonfx = { version = "0.13.0", default-features = false, features = ["dsl", "web-time"] }
 web-sys = { version = "0.3.77", features = ["Location", "Window", "console"] }
 web-time = "1.1.0"
-base64 = "0.22.1"
 percent-encoding = "2.3.1"
 miniz_oxide = "0.8.8"
 wasm-bindgen = "0.2.100"

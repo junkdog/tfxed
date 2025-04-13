@@ -1,7 +1,6 @@
 mod event_handler;
 mod interop;
 
-use base64::Engine;
 use std::collections::HashMap;
 
 use ratatui::style::Stylize;

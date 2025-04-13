@@ -114,7 +114,12 @@
     }
 
     function base64Decode(b64) {
-        const bin = atob(b64);
+        const standardB64 = b64
+            .replace(/-/g, '+')
+            .replace(/_/g, '/')
+            .padEnd(b64.length + (4 - b64.length % 4) % 4, '=');
+
+        const bin = atob(standardB64);
         return Uint8Array.from([...bin].map(c => c.charCodeAt(0)));
     }
 
@@ -132,17 +137,21 @@
 
     if (code) {
         try {
-            editor.setValue(decodeAndInflate(code), -1);
-        } catch {
-            console.warn("Invalid compressed code in ?code");
+            let dsl = decodeAndInflate(code);
+            editor.setValue(dsl, -1);
+            // window.wasmBindings.compile_dsl(dsl)
+        } catch (e) {
+            console.warn("Invalid compressed code in ?code", e);
         }
     }
 
     if (canvas) {
         try {
-            canvasInput.value = decodeAndInflate(canvas);
-        } catch {
-            console.warn("Invalid compressed buffer in ?buffer");
+            let decoded = decodeAndInflate(canvas);
+            canvasInput.value = decoded;
+            // window.wasmBindings.update_canvas(decoded);
+        } catch (e) {
+            console.warn("Invalid compressed buffer in ?canvas", e);
         }
     }
 
