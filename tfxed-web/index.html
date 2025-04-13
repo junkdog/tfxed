@@ -82,7 +82,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/ace.js"></script>
 <script>
     const editor = ace.edit("editor");
-    editor.setTheme("ace/theme/monokai");
+    editor.setTheme("ace/theme/gruvbox");
     editor.session.setMode("ace/mode/rust");
     editor.setFontSize("14px");
 
@@ -91,13 +91,13 @@
     // Query param utils
     function updateQueryParam(key, value) {
         const url = new URL(window.location);
-        url.searchParams.set("last_update", Date.now().toString());
 
         if (value === null) {
             url.searchParams.delete(key);
         } else {
             url.searchParams.set(key, value);
         }
+
         history.replaceState(null, "", url);
     }
 
@@ -208,6 +208,20 @@
         contentEl.style.width = 100 - percent + "%";
         editor.resize();
     });
+
+    // check if we need to redirect
+    function checkAndRedirect() {
+        const params = new URLSearchParams(window.location.search);
+        if (!params.has("code") && !params.has("canvas")) {
+            // Redirect to the same page with initial code and buffer
+            const url = new URL(window.location);
+            url.searchParams.set("code", 'dVRRb5swEH7nV9zTZCqUAE2niqoPTadNk6ZV27qnqYocOIgVx2bGNMm_39kQwmhqkAL25bvvvu8OiRbWkm9xxQ1yuIefmNssU7hnizSCjxEsYvoJ7wJJkTve5Nq-DU0ioPt2EcH1DYUG8zk8myPYDTYIud6theJWaNVk7iiZwUNdyyNgWRIEWA1rbTc9OnBVdJTA5WmC8pBlNTdcSpTsw58AaLm9khe4Ko3ercqKPWqpTZZ9MfwYAUvSmFh_VRZNraVPnWU_Wl48tTYMPYJbs72wG18NG1UWRkOKQjSNlq_ILiMudatyfBfzrGsYvIRelXQGTwZy2rIIDbqy6KHToYFSG0Ceb3zhJNWVF92S1OzWpf8mFHLTe2FTt5_c_HfgTxQV0gl4D48o5WchiXaWfdeWLfWhs2x88DBhG_YpDNlnV6WPmmAtK6_4SXdvQ3udsvgQ--UggqlrJEAjRYEgVG-23_Z7K6HY7_pZf9J71TUd3W_Rk9hdYQR2KnlHkw3Fk42npKUU-ZZK6ET522qL_qg2hK-qVWO5sSwh2tEAerbeKzyy-rLDo3R4qKWmKqn9u2R34HqVqnadzvNtZQitAMZrYnAIL3CxNHtT9U7F8EKoiqaKpGnc7HAFHRDoEtbVEOvnw-rRdIx0XMTu8jr2xHt4R7pAyY8N8FctCrBGVBUal_PUp7XBHbetQXk86-X-4z4EffUsjWfOxNnC5Zgk8XJ4abwepMwEx7f7MOAn_ktJwUNX9G9d7C-aAO9OP70v79tEo3g1_wc');
+            url.searchParams.set("canvas", '7dg9bsIwFADgvVfI8g7QgQDlR946dexWVQyVad0akR8pIUXdEFOHDi1EiPPlJHWCoAmBxLETByosSygRtr_3_CxL0QYNUxu0eqiJmjcNpPf6qN1lb9rhG_aC_bLnwP8C7BAMQ9uzXgC7oHGN0wa6aWL32Z48RcP5RgX-7Bz6dxjNFW9Ic0g2SilINjapBIFGrU4CrZ1AMwjx-fQW0vsdpHf07YS9Buq2UKefczQyBoZnY2jgMUkfjczluEszPxly2aOlZG8Oj7YHFnknDowtewpTiicwcoFYtvdGwbMM4rpbZ8Ux0bJigg8WVCIc03YITCi2toGBmpgozQyqSEw8TXlMB4Lijylz5d0fN4HNfHgYGcYIm3AbHttruHdsVrVDF-xXuCOGUdK6FaUoWH3u9aLp8uu4ZddKjz09nKlEvgo0uRt64zrKkXDJwuDPRcgJsYAjW_XgEmtXZ5RCcrJkiWqRYsL_Tvwz5mgFbTK4YLVgPSeRoi4JWOT6ifri1HAx21ZYzb4KE2PCJa9TNTJpXPJmVDEztdfpXs3uC3E5tBWaRcjHxemiqKSCBdB5WeaQx-8EJWjuyjheK6AaLWGOyc-PvX_niajVlsihKhdSV3Eci1SKInLZrSihlo8Lp9DXuzSVvwmbjzuXyS-TF5j8Fw');
+            window.location.href = url.toString();
+        }
+    }
+
+    checkAndRedirect();
 </script>
 </body>
 </html>
