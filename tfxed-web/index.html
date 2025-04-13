@@ -194,8 +194,6 @@
         { value: "Color::LightCyan"      , score: 700, meta: "Color" },
         { value: "Color::White"          , score: 700, meta: "Color" },
 
-
-
         // constraints
         { value: "Constraint::Length(", score: 800, meta: "Constraint" },
         { value: "Constraint::Percentage(", score: 800, meta: "Constraint" },
@@ -332,12 +330,25 @@
         { value: "fx::timed_never_complete(", score: 1000, meta: "Effect" },
     ];
 
-    // Create the custom completer
     const tfxCustomCompleter = {
         getCompletions: function(editor, session, pos, prefix, callback) {
-            callback(null, tfxCompletions);
+
+            if (!prefix) {
+                callback(null, tfxCompletions);
+                return;
+            }
+
+            const caseSensitiveMatches = tfxCompletions.filter(completion => {
+                // Check if the value starts with the exact prefix (case-sensitive)
+                let value = completion.value;
+                return value.startsWith(prefix) ||
+                    (value.startsWith(".") && value.substring(1).startsWith(prefix));
+            });
+
+            callback(null, caseSensitiveMatches);
         }
     };
+
 
     // Add the custom completer to the editor
     editor.completers = [tfxCustomCompleter];
