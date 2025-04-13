@@ -49,7 +49,7 @@
             overflow: auto;
         }
 
-        #buffer-input {
+        #canvas-input {
             background: #1e1e1e;
             color: white;
             border: none;
@@ -76,7 +76,7 @@
     <div id="content"></div>
 </div>
 
-<textarea id="buffer-input" placeholder="Paste ANSI-escaped ASCII here..."></textarea>
+<textarea id="canvas-input" placeholder="Paste ANSI-escaped ASCII here..."></textarea>
 
 <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/ace.js"></script>
@@ -86,7 +86,7 @@
     editor.session.setMode("ace/mode/rust");
     editor.setFontSize("14px");
 
-    const bufferInput = document.getElementById("buffer-input");
+    const canvasInput = document.getElementById("canvas-input");
 
     // Query param utils
     function updateQueryParam(key, value) {
@@ -103,7 +103,7 @@
 
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
-    const buffer = params.get("buffer");
+    const canvas = params.get("canvas");
 
     function base64UrlEncode(bytes) {
         const bin = Array.from(bytes, b => String.fromCharCode(b)).join('');
@@ -138,9 +138,9 @@
         }
     }
 
-    if (buffer) {
+    if (canvas) {
         try {
-            bufferInput.value = decodeAndInflate(buffer);
+            canvasInput.value = decodeAndInflate(canvas);
         } catch {
             console.warn("Invalid compressed buffer in ?buffer");
         }
@@ -155,9 +155,8 @@
             const compressed_code = deflateAndEncode(dslCode);
             updateQueryParam("code", compressed_code);
 
-            const bufferValue = bufferInput.value;
-            const compressed_buffer = deflateAndEncode(bufferValue);
-            updateQueryParam("buffer", compressed_buffer);
+            const compressed_buffer = deflateAndEncode(canvasInput.value);
+            updateQueryParam("canvas", compressed_buffer);
 
             try {
                 window.wasmBindings.compile_dsl(dslCode);
@@ -169,11 +168,11 @@
     });
 
     // save buffer on input and call Rust update_canvas
-    bufferInput.addEventListener("input", () => {
-        const bufferValue = bufferInput.value;
+    canvasInput.addEventListener("input", () => {
+        const bufferValue = canvasInput.value;
         const compressed = deflateAndEncode(bufferValue);
         console.log("Compressed buffer (base64):", compressed);
-        updateQueryParam("buffer", compressed);
+        updateQueryParam("canvas", compressed);
 
         // call rust update_canvas when buffer input changes
         try {
