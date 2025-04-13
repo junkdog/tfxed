@@ -39,7 +39,6 @@ fn main() -> Result<()> {
 
         app.update_time();
         app.render_ui(f);
-        app.render_effects(f);
     });
 
     Ok(())

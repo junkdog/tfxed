@@ -15,7 +15,8 @@ use crate::event::{AppEvent, KeyCode, KeyEvent};
 pub struct App {
     sender: std::sync::mpsc::Sender<AppEvent>,
     effects: EffectManager<EffectKind>,
-    canvas_buf: RefCount<Buffer>,
+    canvas_base_buf: RefCount<Buffer>,
+    canvas_work_buf: RefCount<Buffer>,
     #[cfg(not(feature = "web-backend"))]
     last_tick_instant: std::time::Instant,
     #[cfg(feature = "web-backend")]
@@ -27,8 +28,9 @@ pub struct App {
 
 impl App {
     pub fn new(sender: Sender<AppEvent>) -> Self {
-        let area = ratatui::layout::Rect::new(0, 0, 20, 10);
-        let canvas_buf = ref_count(Buffer::empty(area));
+        let area = Rect::new(0, 0, 20, 10);
+        let canvas_base_buf = ref_count(Buffer::empty(area));
+        let canvas_work_buf = ref_count(Buffer::empty(area));
 
         #[cfg(not(feature = "web-backend"))]
         let last_tick_instant = std::time::Instant::now();
@@ -39,7 +41,8 @@ impl App {
         Self {
             sender,
             effects: Default::default(),
-            canvas_buf,
+            canvas_base_buf,
+            canvas_work_buf,
             last_tick_instant,
             last_tick_duration: Duration::default(),
             counter: 0,
@@ -47,26 +50,40 @@ impl App {
         }
     }
 
+    pub fn resize_canvas(&mut self, area: Rect) {
+        let canvas_base_buf = ref_count(Buffer::empty(area));
+        let canvas_work_buf = ref_count(Buffer::empty(area));
+
+        self.canvas_base_buf = canvas_base_buf;
+        self.canvas_work_buf = canvas_work_buf;
+    }
+
     pub fn sender(&self) -> Sender<AppEvent> {
         self.sender.clone()
     }
 
-    pub fn render_ui(&self, frame: &mut Frame) {
-        let canvas_area = self.canvas_buf.borrow().area;
-        let frame_area = frame.area();
+    pub fn render_ui(&mut self, frame: &mut Frame) {
+        self.reset_canvas_work_buffer();
+        self.update_effects();
 
-        // let Rect { x, y, .. } = frame_area
-        //     .inner_centered(canvas_area.width, canvas_area.height);
-
-        self.canvas_buf.borrow()
+        self.canvas_work_buf.borrow()
             .render_buffer(Offset { x: 2, y: 2 }, &mut frame.buffer_mut());
             // .render_buffer(Offset { x: x as _, y: y as _ }, &mut frame.buffer_mut());
     }
 
-    pub fn render_effects(&mut self, frame: &mut Frame) {
+    /// updates the work buffer with the contents of the base buffer.
+    fn reset_canvas_work_buffer(&self) {
+        let mut buf = self.canvas_work_buf.borrow_mut();
+        self.canvas_base_buf.borrow()
+            .render_buffer(Offset::default(), &mut buf);
+    }
+
+    fn update_effects(&mut self) {
         let d = self.last_tick_duration;
-        let rect = frame.area();
-        self.effects.process_effects(d, frame.buffer_mut(), rect);
+        let mut buf = self.canvas_work_buf.borrow_mut();
+        let area = *buf.area();
+
+        self.effects.process_effects(d, &mut buf, area);
     }
 
     pub fn is_running(&self) -> bool {
@@ -158,11 +175,8 @@ impl App {
         let h = input.lines.len();
 
         let area = Rect::new(0, 0, w as _, h as _);
-        let canvas_buf = ref_count(Buffer::empty(area));
+        self.resize_canvas(area);
 
-        input.render(area, &mut canvas_buf.borrow_mut());
-
-        // replace the old buffer with the new one
-        self.canvas_buf = canvas_buf;
+        input.render(area, &mut self.canvas_base_buf.borrow_mut());
     }
 }
