@@ -100,6 +100,12 @@
         enableLiveAutocompletion: true
     });
 
+    window.addEventListener("TrunkApplicationStarted", (_) => {
+        checkAndRedirect();
+        window.wasmBindings.update_canvas(document.getElementById("canvas-input").value)
+    });
+
+
     const tfxCompletions = [
         // tachyonFX related completions
         { value: "Duration::from_ms(", score: 1000, meta: "TachyonFX" },
@@ -440,7 +446,6 @@
         try {
             let dsl = decodeAndInflate(code);
             editor.setValue(dsl, -1);
-            // window.wasmBindings.compile_dsl(dsl)
         } catch (e) {
             console.warn("Invalid compressed code in ?code", e);
         }
@@ -450,7 +455,6 @@
         try {
             let decoded = decodeAndInflate(canvas);
             canvasInput.value = decoded;
-            // window.wasmBindings.update_canvas(decoded);
         } catch (e) {
             console.warn("Invalid compressed buffer in ?canvas", e);
         }
@@ -510,7 +514,7 @@
         editor.resize();
     });
 
-    // check if we need to redirect
+    // check if we need to redirect; called after trunk is started
     function checkAndRedirect() {
         const params = new URLSearchParams(window.location.search);
         if (!params.has("code") && !params.has("canvas")) {
@@ -520,8 +524,6 @@
             window.location.href = url.toString();
         }
     }
-
-    checkAndRedirect();
 </script>
 </body>
 </html>
