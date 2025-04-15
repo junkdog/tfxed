@@ -10,6 +10,7 @@
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/firacode/6.2.0/fira_code.min.css"
     />
+    <link rel="rust" data-trunk data-wasm-opt = "4"/>
     <title>tfxed</title>
     <style>
         html, body {
@@ -453,8 +454,7 @@
 
     if (canvas) {
         try {
-            let decoded = decodeAndInflate(canvas);
-            canvasInput.value = decoded;
+            canvasInput.value = decodeAndInflate(canvas);
         } catch (e) {
             console.warn("Invalid compressed buffer in ?canvas", e);
         }
