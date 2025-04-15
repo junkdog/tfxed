@@ -36,6 +36,7 @@
         #editor {
             width: 50%;
             height: 100%;
+            position: relative;
         }
 
         /* used by ace-editor for configuring width of suggestion popup */
@@ -74,6 +75,39 @@
             font-size: 16px;
             margin: 0;
         }
+
+        /* Run button styles */
+        #run-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            background-color: rgba(50, 50, 50, 0.7);
+            border: none;
+            border-radius: 4px;
+            color: #d5c4a1;
+            font-family: "Fira Code", monospace;
+            padding: 6px 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+
+        #run-button:hover {
+            background-color: rgba(70, 70, 70, 0.9);
+        }
+
+        #run-button .icon {
+            margin-right: 5px;
+            font-size: 16px;
+        }
+
+        #run-button .tooltip {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
@@ -103,7 +137,31 @@
 
     window.addEventListener("TrunkApplicationStarted", (_) => {
         checkAndRedirect();
-        window.wasmBindings.update_canvas(document.getElementById("canvas-input").value)
+        window.wasmBindings.update_canvas(document.getElementById("canvas-input").value);
+
+        // Create and append run button dynamically
+        const editorContainer = document.getElementById("editor");
+        const runButton = document.createElement("button");
+        runButton.id = "run-button";
+        runButton.innerHTML = '<span class="icon">▶</span><span>Run</span><span class="tooltip">(Ctrl+S, Cmd+S)</span>';
+        editorContainer.appendChild(runButton);
+
+        // Set up run button functionality
+        runButton.addEventListener("click", () => {
+            const dslCode = editor.getValue(0);
+            const compressed_code = deflateAndEncode(dslCode);
+            updateQueryParam("code", compressed_code);
+
+            const compressed_buffer = deflateAndEncode(canvasInput.value);
+            updateQueryParam("canvas", compressed_buffer);
+
+            try {
+                window.wasmBindings.compile_dsl(dslCode);
+                console.log("DSL code sent to Rust for compilation");
+            } catch (error) {
+                console.error("Error calling Rust compile_dsl:", error);
+            }
+        });
     });
 
 
