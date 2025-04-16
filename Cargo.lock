@@ -830,6 +830,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "tachyonfx-ftl-web"
+version = "0.1.0"
+dependencies = [
+ "color-eyre",
+ "miniz_oxide 0.8.8",
+ "percent-encoding",
+ "ratatui",
+ "ratzilla",
+ "tachyonfx",
+ "tfxed-core",
+ "wasm-bindgen",
+ "web-sys",
+ "web-time",
+]
+
+[[package]]
 name = "tfxed-cli"
 version = "0.1.0"
 dependencies = [
@@ -849,22 +865,6 @@ dependencies = [
  "bitflags",
  "ratatui",
  "tachyonfx",
- "web-time",
-]
-
-[[package]]
-name = "tfxed-web"
-version = "0.1.0"
-dependencies = [
- "color-eyre",
- "miniz_oxide 0.8.8",
- "percent-encoding",
- "ratatui",
- "ratzilla",
- "tachyonfx",
- "tfxed-core",
- "wasm-bindgen",
- "web-sys",
  "web-time",
 ]
 

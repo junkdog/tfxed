@@ -1,8 +1,8 @@
 [workspace]
 members = [
-    "tfxed-core",
-    "tfxed-cli",
-    "tfxed-web",
+    "tachyonfx-ftl-core",
+    "tachyonfx-ftl-cli",
+    "tachyonfx-ftl-web",
 ]
 
 resolver = "2"

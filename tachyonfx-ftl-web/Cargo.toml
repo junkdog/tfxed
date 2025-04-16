@@ -1,5 +1,5 @@
 [package]
-name = "tfxed-web"
+name = "tachyonfx-ftl-web"
 version = "0.1.0"
 authors = ["Adrian Papari <junkdog@angelhill.net>"]
 license = "MIT"
@@ -7,7 +7,7 @@ edition = "2021"
 description = "Web interface for tachyonfx effect DSL editor"
 
 [dependencies]
-tfxed-core = { path = "../tfxed-core", features = ["web-backend"] }
+tfxed-core = { path = "../tachyonfx-ftl-core", features = ["web-backend"] }
 ratatui = { version = "0.29.0", default-features = false }
 ratzilla = "0.0.5"
 color-eyre = "0.6.3"
@@ -19,5 +19,5 @@ miniz_oxide = "0.8.8"
 wasm-bindgen = "0.2.100"
 
 [[bin]]
-name = "tfxed-web"
+name = "tachyonfx-ftl-web"
 path = "src/main.rs"
