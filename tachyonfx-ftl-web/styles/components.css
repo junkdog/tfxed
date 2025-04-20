@@ -1,0 +1,66 @@
+/* GitHub header styles */
+.github-header {
+    background-color: #282828;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    font-size: 14px;
+    border-bottom: 1px solid #3c3836;
+}
+
+.github-header a {
+    color: #d5c4a1;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    margin-left: 24px;
+    transition: color 0.2s;
+}
+
+.github-header a:hover {
+    color: #fabd2f;
+}
+
+.github-header svg {
+    margin-right: 6px;
+}
+
+/* Run button styles */
+#run-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    background-color: rgba(50, 50, 50, 0.7);
+    border: none;
+    border-radius: 4px;
+    color: #d5c4a1;
+    font-family: "Fira Code", monospace;
+    padding: 6px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+#run-button:hover {
+    background-color: rgba(70, 70, 70, 0.9);
+}
+
+#run-button .icon {
+    margin-right: 5px;
+    font-size: 16px;
+}
+
+#run-button .tooltip {
+    font-size: 11px;
+    opacity: 0.7;
+    margin-left: 5px;
+}
+
+/* used by ace-editor for configuring width of suggestion popup */
+.ace_autocomplete {
+    width: 400px !important; /* Adjust this value to change the width */
+    max-width: 60vw !important;
+}
