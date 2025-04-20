@@ -285,6 +285,3 @@ const tfxCustomCompleter = {
 
 // export the completer so it can be imported in other files
 export default tfxCustomCompleter;
-
-// export the completions list as well in case it needs to be extended or modified
-export { tfxCompletions };
