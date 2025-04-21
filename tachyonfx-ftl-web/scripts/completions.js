@@ -1,4 +1,3 @@
-// TachyonFX Completions
 const tfxCompletions = [
     // tachyonFX related completions
     { value: "Duration::from_ms(", score: 1000, meta: "TachyonFX" },
@@ -284,4 +283,4 @@ const tfxCustomCompleter = {
 };
 
 // export the completer so it can be imported in other files
-export default tfxCustomCompleter;
+// export default tfxCustomCompleter;

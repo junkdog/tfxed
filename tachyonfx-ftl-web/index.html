@@ -11,10 +11,12 @@
             href="https://cdnjs.cloudflare.com/ajax/libs/firacode/6.2.0/fira_code.min.css"
     />
     <link data-trunk rel="css" href="styles/main.css"/>
-    <link data-trunk rel="css" href="styles/components.css"/><link data-trunk rel="copy-file" href="scripts/completions.js"/>
-    <link data-trunk rel="copy-file" href="scripts/completions.js"/>
-    <link data-trunk rel="copy-file" href="scripts/redirect.js"/>
-    <link rel="rust" data-trunk data-wasm-opt = "4"/>
+    <link data-trunk rel="css" href="styles/components.css"/>
+
+    <link
+        rel="rust"
+        href="Cargo.toml"
+        data-trunk data-wasm-opt = "4"/>
     <title>TachyonFX FTL: Effect DSL editor and previewer</title>
 </head>
 <body>
@@ -41,30 +43,28 @@
 
 <textarea id="canvas-input" placeholder="Paste ANSI-escaped ASCII here..."></textarea>
 
+<script data-trunk src="./scripts/completions.js" data-target-path="scripts/"></script>
+<script data-trunk src="./scripts/redirect.js" data-target-path="scripts/"></script>
+<script data-trunk src="./scripts/editor.js" data-target-path="scripts/"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/ace.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/ext-language_tools.js"></script>
+
 <script type="module">
-    import tfxCustomCompleter from './completions.js';
-    import checkAndRedirect from './redirect.js';
 
-    const editor = ace.edit("editor");
-    editor.setTheme("ace/theme/gruvbox");
-    editor.session.setMode("ace/mode/rust");
-    editor.setFontSize("14px");
-
-    // Enable basic autocompletion, snippets, and live autocompletion
-    editor.setOptions({
-        enableBasicAutocompletion: true,
-        enableSnippets: true,
-        enableLiveAutocompletion: true
-    });
-
-    // add the custom completer to the editor
+    const editor = setupEditor();
     editor.completers = [tfxCustomCompleter];
+    console.log("completions loaded", tfxCustomCompleter);
 
     window.addEventListener("TrunkApplicationStarted", (_) => {
+    // window.addEventListener("ApplicationInited", (_) => {
+        console.log("TrunkApplicationStarted event received");
         checkAndRedirect();
+        updateCodeAndCanvas();
+        console.log("post redirect");
+        console.log("wasmBindings", window.wasmBindings);
+
         window.wasmBindings.update_canvas(document.getElementById("canvas-input").value);
 
         // Create and append run button dynamically
@@ -92,8 +92,6 @@
         });
     });
 
-
-
     const canvasInput = document.getElementById("canvas-input");
 
     // Query param utils
@@ -108,10 +106,6 @@
 
         history.replaceState(null, "", url);
     }
-
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    const canvas = params.get("canvas");
 
     function base64UrlEncode(bytes) {
         const bin = Array.from(bytes, b => String.fromCharCode(b)).join('');
@@ -143,22 +137,29 @@
         return new TextDecoder().decode(decompressed);
     }
 
-    if (code) {
-        try {
-            let dsl = decodeAndInflate(code);
-            editor.setValue(dsl, -1);
-        } catch (e) {
-            console.warn("Invalid compressed code in ?code", e);
+    function updateCodeAndCanvas() {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get("code");
+        const canvas = params.get("canvas");
+
+        if (code) {
+            try {
+                let dsl = decodeAndInflate(code);
+                editor.setValue(dsl, -1);
+            } catch (e) {
+                console.warn("Invalid compressed code in ?code", e);
+            }
+        }
+
+        if (canvas) {
+            try {
+                canvasInput.value = decodeAndInflate(canvas);
+            } catch (e) {
+                console.warn("Invalid compressed buffer in ?canvas", e);
+            }
         }
     }
 
-    if (canvas) {
-        try {
-            canvasInput.value = decodeAndInflate(canvas);
-        } catch (e) {
-            console.warn("Invalid compressed buffer in ?canvas", e);
-        }
-    }
 
     // save code on Ctrl+S / Cmd+S
     window.addEventListener("keydown", (e) => {
@@ -213,6 +214,7 @@
         contentEl.style.width = 100 - percent + "%";
         editor.resize();
     });
+    console.log("finished setting up editor");
 </script>
 </body>
 </html>

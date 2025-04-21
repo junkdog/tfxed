@@ -1,5 +1,6 @@
 // check if we need to redirect; called after trunk is started
-export default function checkAndRedirect() {
+function checkAndRedirect() {
+    console.log("checkAndRedirect called");
     const params = new URLSearchParams(window.location.search);
     if (!params.has("code") && !params.has("canvas")) {
         const url = new URL(window.location);
@@ -8,4 +9,3 @@ export default function checkAndRedirect() {
         window.location.href = url.toString();
     }
 }
-
