@@ -1,0 +1,1 @@
+var setupEditor=(()=>{const a=ace.edit(`editor`);a.setTheme(`ace/theme/gruvbox`);a.session.setMode(`ace/mode/rust`);a.setFontSize(`14px`);a.setOptions({enableBasicAutocompletion:!0,enableSnippets:!0,enableLiveAutocompletion:!0});return a})
