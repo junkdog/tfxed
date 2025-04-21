@@ -45,25 +45,6 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn parse_query_params(query: &str) -> Result<HashMap<String, String>> {
-    let mut map = HashMap::new();
-
-    for pair in query.trim_start_matches('?').split('&') {
-        let mut split = pair.splitn(2, '=');
-        let key_enc = split.next().unwrap_or("");
-        let val_enc = split.next().unwrap_or("");
-
-        let key_bytes = percent_decode(key_enc)?;
-        let val_bytes = percent_decode(val_enc)?;
-
-        let key = String::from_utf8(key_bytes)?;
-        let value = String::from_utf8(val_bytes)?;
-        map.insert(key, value);
-    }
-
-    Ok(map)
-}
-
 /// decompresses raw DEFLATE-compressed bytes into a UTF-8 string
 pub fn decompress(compressed: Vec<u8>) -> Result<String> {
     let bytes = decompress_to_vec(&compressed)

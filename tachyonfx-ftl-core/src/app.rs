@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::mpsc::Sender;
 use ansi_to_tui::IntoText;
 use ratatui::buffer::Buffer;
@@ -13,6 +14,13 @@ use crate::effects::{display_dsl_error, EffectKind};
 use crate::event::{AppEvent, KeyCode, KeyEvent};
 use crate::gruvbox::Gruvbox;
 use crate::widgets::Ruler;
+
+#[cfg(feature = "web-backend")]
+use wasm_bindgen::prelude::*;
+#[wasm_bindgen(js_namespace = window)]
+extern "C" {
+    fn dsl_error_callback(error_info: &str);
+}
 
 pub struct App {
     sender: std::sync::mpsc::Sender<AppEvent>,
@@ -79,7 +87,7 @@ impl App {
 
         self.canvas_work_buf.borrow()
             .render_buffer(Offset { x: 2, y: 2 }, &mut frame.buffer_mut());
-            // .render_buffer(Offset { x: x as _, y: y as _ }, &mut frame.buffer_mut());
+        // .render_buffer(Offset { x: x as _, y: y as _ }, &mut frame.buffer_mut());
     }
 
     /// updates the work buffer with the contents of the base buffer.
@@ -152,10 +160,26 @@ impl App {
                         self.effects.add_unique_effect(DslErrorPopup, consume_tick());
                     }
                     Err(e)     => {
+                        println!("Error: {}", e);
+                        println!("Error (context): {}", e.context());
+                        
+                        // Create JSON-formatted error info
+                        let error_info = format!(
+                            "{{\"message\":\"{}\",\"line\":{},\"column\":{},\"line_end\":{},\"column_end\":{}}}",
+                            e.source.to_string().replace("\"", "\\\""), // Escape quotes
+                            e.start_line(),
+                            e.start_column(),
+                            e.end_line(),
+                            e.end_column() - 1
+                        );
+
+                        #[cfg(feature = "web-backend")]
+                        dsl_error_callback(&error_info);
+
                         self.display_error_popup(
                             e.source.to_string(),
-                            e.error_line().to_string(),
-                            (e.line(), e.column()),
+                            e.context(),
+                            (e.start_line() as _, e.start_column() as _),
                         )
                     }
                 }

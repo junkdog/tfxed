@@ -61,6 +61,7 @@ pub fn display_dsl_error(
     };
 
     fx::effect_fn_buf(state, duration, move | state, context, buf| {
+        let popup_area = popup_area.intersection(*buf.area());
         Clear.render(popup_area.clone(), buf);
 
         Block::new()
@@ -83,14 +84,8 @@ pub fn display_dsl_error(
             .render(layout[0], buf);
 
         // code
-        Line::from(vec![
-            // line no
-            Span::from(state.line_no.as_str())
-                .style(Style::new().fg(Gruvbox::yellow_bright()).add_modifier(Modifier::BOLD)),
-
-            // referenced code
-            Span::from(state.referenced_code.as_str())
-                .style(Style::new().fg(Gruvbox::light0_soft()))
-        ]).render(layout[2], buf);
+        Text::from(state.referenced_code.as_str())
+            .style(Style::new().fg(Gruvbox::light0_soft())
+        ).render(layout[2], buf);
     })
 }

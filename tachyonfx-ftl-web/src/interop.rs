@@ -1,5 +1,5 @@
 use std::sync::mpsc::Sender;
-use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::prelude::*;
 use tfxed_core::{AppEvent::UpdateCanvas, AppEvent::CompileDsl, Dispatcher, AppEvent};
 
 #[wasm_bindgen]
@@ -10,6 +10,17 @@ pub fn compile_dsl(s: &str) {
 #[wasm_bindgen]
 pub fn update_canvas(s: &str) {
     sender().dispatch(UpdateCanvas(s.into()));
+}
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = window)]
+    fn dsl_error_callback(error_message: &str);
+}
+
+#[wasm_bindgen]
+pub fn notify_error(error_message: &str) {
+    dsl_error_callback(error_message);
 }
 
 fn sender() -> Sender<AppEvent> {

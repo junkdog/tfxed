@@ -14,9 +14,9 @@
     <link data-trunk rel="css" href="styles/components.css"/>
 
     <link
-        rel="rust"
-        href="Cargo.toml"
-        data-trunk data-wasm-opt = "4"/>
+            rel="rust"
+            href="Cargo.toml"
+            data-trunk data-wasm-opt = "4"/>
     <title>TachyonFX FTL: Effect DSL editor and previewer</title>
 </head>
 <body>
@@ -43,6 +43,13 @@
 
 <textarea id="canvas-input" placeholder="Paste ANSI-escaped ASCII here..."></textarea>
 
+<!-- Error Toast Notification -->
+<div id="error-toast" class="error-toast">
+    <div class="error-icon">⚠️</div>
+    <div id="error-message" class="error-message"></div>
+    <button id="close-error" class="close-error">×</button>
+</div>
+
 <script data-trunk src="./scripts/completions.js" data-target-path="scripts/"></script>
 <script data-trunk src="./scripts/redirect.js" data-target-path="scripts/"></script>
 <script data-trunk src="./scripts/editor.js" data-target-path="scripts/"></script>
@@ -53,11 +60,102 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/ext-language_tools.js"></script>
 
 <script type="module">
-
+    Error.stackTraceLimit = 100;
+    
+    
     const editor = setupEditor();
     editor.completers = [tfxCustomCompleter];
     console.log("completions loaded", tfxCustomCompleter);
     const canvasInput = document.getElementById("canvas-input");
+    const errorToast = document.getElementById("error-toast");
+    const errorMessage = document.getElementById("error-message");
+    const closeError = document.getElementById("close-error");
+
+    // Error handling setup
+    window.dsl_error_callback = function(errorData) {
+        console.log("Error callback received:", errorData);
+
+        try {
+            // Parse the JSON error info
+            const errorInfo = JSON.parse(errorData);
+
+            // Display message in toast
+            errorMessage.textContent = `${errorInfo.line}:${errorInfo.column} ${errorInfo.message}`;
+            errorToast.classList.add("show");
+
+            // Navigate to error position in editor
+            const startLine = errorInfo.line - 1; // Ace editor is zero-indexed
+            const startCol = errorInfo.column - 1; // Usually zero-indexed in Ace
+            const endLine = errorInfo.line_end - 1;
+            const endCol = errorInfo.column_end;
+
+            // Navigate to and focus on error position
+            editor.navigateTo(startLine, startCol);
+            editor.scrollToLine(startLine, true, true, function () {});
+            editor.focus();
+
+            // Clear any existing markers
+            editor.session.clearAnnotations();
+            if (window.currentErrorMarker !== undefined) {
+                editor.session.removeMarker(window.currentErrorMarker);
+            }
+
+            // Add error annotation
+            editor.session.setAnnotations([{
+                row: startLine,
+                column: startCol,
+                text: errorInfo.message,
+                type: "error"
+            }]);
+
+            // Create range for highlighting the specific error span
+            const range = new ace.Range(startLine, startCol, endLine, endCol);
+            window.currentErrorMarker = editor.session.addMarker(range, "error-marker", "text", false);
+
+            // Add line highlight
+            window.currentLineMarker = editor.session.addMarker(
+                new ace.Range(startLine, 0, startLine, Infinity),
+                "error-line",
+                "fullLine",
+                false
+            );
+        } catch (e) {
+            // Fallback for non-JSON errors
+            console.error("Error parsing error data:", e);
+            errorMessage.textContent = errorData;
+            errorToast.classList.add("show");
+        }
+    };
+
+    // Close error toast when clicking X
+    closeError.addEventListener("click", () => {
+        errorToast.classList.remove("show");
+        clearErrorMarkers();
+    });
+
+    // Function to clear error markers
+    function clearErrorMarkers() {
+        if (window.currentErrorMarker !== undefined) {
+            editor.session.removeMarker(window.currentErrorMarker);
+            window.currentErrorMarker = undefined;
+        }
+        if (window.currentLineMarker !== undefined) {
+            editor.session.removeMarker(window.currentLineMarker);
+            window.currentLineMarker = undefined;
+        }
+        editor.session.clearAnnotations();
+    }
+
+    // Auto hide after 10 seconds
+    let errorTimeout;
+    function showError(message) {
+        clearTimeout(errorTimeout);
+        errorMessage.textContent = message;
+        errorToast.classList.add("show");
+        errorTimeout = setTimeout(() => {
+            errorToast.classList.remove("show");
+        }, 10000);
+    }
 
     window.addEventListener("TrunkApplicationStarted", (_) => {
         console.log("TrunkApplicationStarted event received");
@@ -77,6 +175,9 @@
 
         // Set up run button functionality
         runButton.addEventListener("click", () => {
+            clearErrorMarkers();
+            errorToast.classList.remove("show");
+            
             const dslCode = editor.getValue(0);
             const compressed_code = deflateAndEncode(dslCode);
             updateQueryParam("code", compressed_code);
@@ -89,6 +190,7 @@
                 console.log("DSL code sent to Rust for compilation");
             } catch (error) {
                 console.error("Error calling Rust compile_dsl:", error);
+                showError("Internal error: " + error.toString());
             }
         });
     });
@@ -97,6 +199,9 @@
     window.addEventListener("keydown", (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === "s") {
             e.preventDefault();
+            
+            clearErrorMarkers();
+            errorToast.classList.remove("show");
 
             const dslCode = editor.getValue(0);
             const compressed_code = deflateAndEncode(dslCode);
@@ -110,6 +215,7 @@
                 console.log("DSL code sent to Rust for compilation");
             } catch (error) {
                 console.error("Error calling Rust compile_dsl:", error);
+                showError("Internal error: " + error.toString());
             }
         }
     });
@@ -128,6 +234,7 @@
             window.wasmBindings.update_canvas(bufferValue);
         } catch (error) {
             console.error("Error calling Rust update_canvas:", error);
+            showError("Error updating canvas: " + error.toString());
         }
     });
 

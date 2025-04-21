@@ -77,9 +77,9 @@ checksum = "5c8214115b7bf84099f1309324e63141d4c5d7cc26862f97a0a857dbefe165bd"
 
 [[package]]
 name = "bon"
-version = "3.5.1"
+version = "3.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "65268237be94042665b92034f979c42d431d2fd998b49809543afe3e66abad1c"
+checksum = "ced38439e7a86a4761f7f7d5ded5ff009135939ecb464a24452eaa4c1696af7d"
 dependencies = [
  "bon-macros",
  "rustversion",
@@ -87,9 +87,9 @@ dependencies = [
 
 [[package]]
 name = "bon-macros"
-version = "3.5.1"
+version = "3.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "803c95b2ecf650eb10b5f87dda6b9f6a1b758cee53245e2b7b825c9b3803a443"
+checksum = "0ce61d2d3844c6b8d31b2353d9f66cf5e632b3e9549583fe3cac2f4f6136725e"
 dependencies = [
  "darling",
  "ident_case",
@@ -826,6 +826,21 @@ dependencies = [
  "ratatui",
  "simple-easing",
  "thiserror 2.0.12",
+]
+
+[[package]]
+name = "tachyonfx"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c5a63006e578fb3b6240e83bfabff011c676df570a13bb80a7ae1a6d5a10f93a"
+dependencies = [
+ "anpa",
+ "bon",
+ "colorsys",
+ "compact_str 0.9.0",
+ "ratatui",
+ "simple-easing",
+ "thiserror 2.0.12",
  "web-time",
 ]
 
@@ -833,16 +848,16 @@ dependencies = [
 name = "tachyonfx-ftl-web"
 version = "0.1.0"
 dependencies = [
- "color-eyre",
+ "console_error_panic_hook",
+ "eyre",
  "miniz_oxide 0.8.8",
  "percent-encoding",
  "ratatui",
  "ratzilla",
- "tachyonfx",
+ "tachyonfx 0.14.0",
  "tfxed-core",
  "wasm-bindgen",
  "web-sys",
- "web-time",
 ]
 
 [[package]]
@@ -853,7 +868,7 @@ dependencies = [
  "color-eyre",
  "crossterm",
  "ratatui",
- "tachyonfx",
+ "tachyonfx 0.13.0",
  "tfxed-core",
 ]
 
@@ -864,7 +879,8 @@ dependencies = [
  "ansi-to-tui",
  "bitflags",
  "ratatui",
- "tachyonfx",
+ "tachyonfx 0.14.0",
+ "wasm-bindgen",
  "web-time",
 ]
 
