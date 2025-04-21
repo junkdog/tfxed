@@ -2,20 +2,21 @@ mod event_handler;
 mod interop;
 
 use std::collections::HashMap;
-
+use std::error::Error;
 use ratatui::style::Stylize;
 
 use crate::event_handler::{convert_key_event, EventHandler};
 use crate::interop::init_global_state;
-use color_eyre::eyre::{eyre, Result, WrapErr};
+use console_error_panic_hook::set_once as set_panic_hook;
+use eyre::{eyre, Result, WrapErr};
 use miniz_oxide::inflate::decompress_to_vec;
 use ratatui::Terminal as RatTerminal;
 use ratzilla::{DomBackend, WebRenderer};
 use tfxed_core::{App, AppEvent, Dispatcher};
 
-fn main() -> Result<()> {
-    color_eyre::install()?;
 
+fn main() -> Result<()> {
+    set_panic_hook();
     let events = EventHandler::new();
     let sender = events.sender();
 
