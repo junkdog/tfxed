@@ -1,4 +1,3 @@
-// import tfxCustomCompleter from './completions.mjs';
 
 function setupEditor() {
     const editor = ace.edit("editor");
@@ -12,12 +11,6 @@ function setupEditor() {
         enableSnippets: true,
         enableLiveAutocompletion: true
     });
-
-    // console.log("editor initialized; loading completions");
-    //
-    // // add the custom completer to the editor
-    // editor.completers = [tfxCustomCompleter];
-    // console.log("completions loaded", tfxCustomCompleter);
 
     return editor;
 }

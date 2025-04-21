@@ -1,5 +1,5 @@
 // check if we need to redirect; called after trunk is started
-function checkAndRedirect() {
+function encodeDefaultCodeAndCanvasOnMissing() {
     console.log("checkAndRedirect called");
     const params = new URLSearchParams(window.location.search);
     if (!params.has("code") && !params.has("canvas")) {
