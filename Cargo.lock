@@ -793,21 +793,6 @@ dependencies = [
 
 [[package]]
 name = "tachyonfx"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e12f441a3aa6821a20ebc350e51139806c875551910e8ac067f663e4ab28e82"
-dependencies = [
- "anpa",
- "bon",
- "colorsys",
- "compact_str 0.9.0",
- "ratatui",
- "simple-easing",
- "thiserror 2.0.12",
-]
-
-[[package]]
-name = "tachyonfx"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c5a63006e578fb3b6240e83bfabff011c676df570a13bb80a7ae1a6d5a10f93a"
@@ -830,7 +815,7 @@ dependencies = [
  "eyre",
  "ratatui",
  "ratzilla",
- "tachyonfx 0.14.0",
+ "tachyonfx",
  "tfxed-core",
  "wasm-bindgen",
  "web-sys",
@@ -844,7 +829,7 @@ dependencies = [
  "color-eyre",
  "crossterm",
  "ratatui",
- "tachyonfx 0.13.0",
+ "tachyonfx",
  "tfxed-core",
 ]
 
@@ -855,7 +840,7 @@ dependencies = [
  "ansi-to-tui",
  "bitflags",
  "ratatui",
- "tachyonfx 0.14.0",
+ "tachyonfx",
  "wasm-bindgen",
  "web-time",
 ]
