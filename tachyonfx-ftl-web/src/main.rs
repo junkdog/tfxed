@@ -9,9 +9,9 @@ use crate::event_handler::{convert_key_event, EventHandler};
 use crate::interop::init_global_state;
 use console_error_panic_hook::set_once as set_panic_hook;
 use eyre::{eyre, Result, WrapErr};
-use miniz_oxide::inflate::decompress_to_vec;
 use ratatui::Terminal as RatTerminal;
-use ratzilla::{DomBackend, WebRenderer};
+use ratzilla::{CanvasBackend, DomBackend, WebRenderer};
+use ratzilla::backend::canvas::CanvasBackendOptions;
 use tfxed_core::{App, AppEvent, Dispatcher};
 
 
@@ -45,21 +45,9 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-/// decompresses raw DEFLATE-compressed bytes into a UTF-8 string
-pub fn decompress(compressed: Vec<u8>) -> Result<String> {
-    let bytes = decompress_to_vec(&compressed)
-        .map_err(|e| eyre!("Failed to decompress buffer: {}", e))?;
 
-    String::from_utf8(bytes)
-        .map_err(|_| eyre!("Invalid UTF-8 in decompressed data"))
-}
-
-fn percent_decode(input: &str) -> Result<Vec<u8>> {
-    Ok(percent_encoding::percent_decode(input.as_bytes()).collect())
-}
-
-fn terminal() -> Result<RatTerminal<DomBackend>> {
-    let backend = DomBackend::new_by_id("content")
+fn terminal() -> Result<RatTerminal<CanvasBackend>> {
+    let backend = CanvasBackend::new_with_options(CanvasBackendOptions::new().grid_id("content"))
         .map_err(|e| eyre!("{e}"))?;
 
     RatTerminal::new(backend)
