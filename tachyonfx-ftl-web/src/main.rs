@@ -1,7 +1,6 @@
 mod event_handler;
 mod interop;
 
-use std::collections::HashMap;
 use std::error::Error;
 use ratatui::style::Stylize;
 
@@ -10,8 +9,8 @@ use crate::interop::init_global_state;
 use console_error_panic_hook::set_once as set_panic_hook;
 use eyre::{eyre, Result, WrapErr};
 use ratatui::Terminal as RatTerminal;
-use ratzilla::{CanvasBackend, DomBackend, WebRenderer};
-use ratzilla::backend::canvas::CanvasBackendOptions;
+use ratzilla::{WebGl2Backend, WebRenderer};
+use ratzilla::backend::webgl2::WebGl2BackendOptions;
 use tfxed_core::{App, AppEvent, Dispatcher};
 
 
@@ -46,8 +45,8 @@ fn main() -> Result<()> {
 }
 
 
-fn terminal() -> Result<RatTerminal<CanvasBackend>> {
-    let backend = CanvasBackend::new_with_options(CanvasBackendOptions::new().grid_id("content"))
+fn terminal() -> Result<RatTerminal<WebGl2Backend>> {
+    let backend = WebGl2Backend::new_with_options(WebGl2BackendOptions::new().grid_id("content"))
         .map_err(|e| eyre!("{e}"))?;
 
     RatTerminal::new(backend)
