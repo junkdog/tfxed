@@ -255,7 +255,9 @@
     });
 
     // trigger initial animation
-    document.getElementById("run-button").click();
+    setTimeout(() => {
+        document.getElementById("run-button").click();
+    }, 200);
     console.log("finished setting up editor");
 </script>
 </body>
